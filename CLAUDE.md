@@ -34,7 +34,7 @@ xcodebuild -project FitTrack.xcodeproj -scheme FitTrack -configuration Debug bui
 - `Sources/FitTrack/` 全部源码：Models / AppStore / Engine / Importer / RemindersSync / AIService / FitTrackApp / Views；`scripts/package.sh` 出 DMG。
 - macOS bundle id `com.frost.fittrack`（ad-hoc 签名）；iOS `com.frost.fittrack.ios`。
 - 坑：给 Codable 结构体加字段必须用 optional，否则旧 JSON 整体解码失败丢数据。
-- 文档：`docs/开发文档.md` 是常驻技术文档（架构/数据模型/核心机制详解）；`docs/2026-09-16-开发总结.md` 为某次会话快照。
+- 文档：`docs/开发文档.md` 是常驻技术文档（架构/数据模型/核心机制详解）；`docs/使用手册.md` 面向使用者（两个版本怎么用、导入格式、算法口径、FAQ）；`docs/2026-09-16-开发总结.md` 为某次会话快照。
 
 ## 配重与卡路里的口径（改之前先读）
 
