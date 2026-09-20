@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Swift / Xcode 构建产物
+.build/
+build/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+
+# 构建输出（Mac 的 DMG 与网页版的 dist 都是产物，不进仓库）
+dist/
+
+# 网页版
+web/node_modules/
+web/dist/
+web/.vite/
+
+# 编辑器 / IDE 本地状态
+.trae/
+.vscode/
+.idea/

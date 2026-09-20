@@ -1,0 +1,42 @@
+name: FitTrack
+options:
+  bundleIdPrefix: com.frost
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+targets:
+  FitTrack:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/FitTrack
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.frost.fittrack
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSRemindersUsageDescription: 用于将你的训练计划同步到「提醒事项」
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.healthcare-fitness
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+  FitTrack-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - Sources/FitTrack
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.frost.fittrack.ios
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSRemindersUsageDescription: 用于将你的训练计划同步到「提醒事项」
+        INFOPLIST_KEY_NSHealthShareUsageDescription: 读取你的健康数据以追踪体重与身体指标
+        INFOPLIST_KEY_NSHealthUpdateUsageDescription: 将你的体重等身体指标写入健康
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+    entitlements:
+      path: Entitlements/iOS.entitlements
+      properties:
+        com.apple.developer.healthkit: true

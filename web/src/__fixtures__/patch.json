@@ -1,0 +1,1079 @@
+{
+  "profile_全部超上限" : {
+    "changes" : [
+      "年龄：25 → 90",
+      "身高：175cm → 250cm",
+      "每周训练天数：4 → 7"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 90,
+        "heightCM" : 250,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 7
+      }
+    }
+  },
+  "profile_全部越界" : {
+    "changes" : [
+      "年龄：25 → 10",
+      "身高：175cm → 120cm",
+      "每周训练天数：4 → 1"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 10,
+        "heightCM" : 120,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 1
+      }
+    }
+  },
+  "三大项_上限夹紧" : {
+    "changes" : [
+      "卧推极限：未设置 → 400kg"
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 400
+      },
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "三大项_下限夹紧" : {
+    "changes" : [
+      "卧推极限：未设置 → 20kg"
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 20
+      },
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "三大项_只改一项" : {
+    "changes" : [
+      "深蹲极限：140kg → 145kg"
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 100,
+        "deadliftKG" : 180,
+        "squatKG" : 145
+      },
+      "coachNotes" : [
+        "膝盖有旧伤，深蹲不要上太大重量"
+      ],
+      "goal" : {
+        "targetBodyFatPct" : 20,
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "三大项_同值不报" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 100,
+        "deadliftKG" : 180,
+        "squatKG" : 140
+      },
+      "coachNotes" : [
+        "膝盖有旧伤，深蹲不要上太大重量"
+      ],
+      "goal" : {
+        "targetBodyFatPct" : 20,
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "三大项_舍入到2.5" : {
+    "changes" : [
+      "卧推极限：未设置 → 102.5kg"
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 102.5
+      },
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "三大项_舍入到103.75" : {
+    "changes" : [
+      "卧推极限：未设置 → 105kg"
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 105
+      },
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "备注_单条" : {
+    "changes" : [
+      "新增训练偏好：晚上训练，睡眠 7 小时"
+    ],
+    "updated" : {
+      "coachNotes" : [
+        "晚上训练，睡眠 7 小时"
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "备注_已有11条再加3条" : {
+    "changes" : [
+      "新增训练偏好：新A"
+    ],
+    "updated" : {
+      "coachNotes" : [
+        "旧1",
+        "旧2",
+        "旧3",
+        "旧4",
+        "旧5",
+        "旧6",
+        "旧7",
+        "旧8",
+        "旧9",
+        "旧10",
+        "旧11",
+        "新A"
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "备注_空串与空白" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "备注_超过12条" : {
+    "changes" : [
+      "新增训练偏好：偏好1",
+      "新增训练偏好：偏好2",
+      "新增训练偏好：偏好3",
+      "新增训练偏好：偏好4",
+      "新增训练偏好：偏好5",
+      "新增训练偏好：偏好6",
+      "新增训练偏好：偏好7",
+      "新增训练偏好：偏好8",
+      "新增训练偏好：偏好9",
+      "新增训练偏好：偏好10",
+      "新增训练偏好：偏好11",
+      "新增训练偏好：偏好12"
+    ],
+    "updated" : {
+      "coachNotes" : [
+        "偏好1",
+        "偏好2",
+        "偏好3",
+        "偏好4",
+        "偏好5",
+        "偏好6",
+        "偏好7",
+        "偏好8",
+        "偏好9",
+        "偏好10",
+        "偏好11",
+        "偏好12"
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "备注_超长截断200" : {
+    "changes" : [
+      "新增训练偏好：很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很"
+    ],
+    "updated" : {
+      "coachNotes" : [
+        "很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很很"
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "备注_重复不重加" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 100,
+        "deadliftKG" : 180,
+        "squatKG" : 140
+      },
+      "coachNotes" : [
+        "膝盖有旧伤，深蹲不要上太大重量"
+      ],
+      "goal" : {
+        "targetBodyFatPct" : 20,
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "备注_首尾空白裁掉" : {
+    "changes" : [
+      "新增训练偏好：早睡"
+    ],
+    "updated" : {
+      "coachNotes" : [
+        "早睡"
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "性别_Female" : {
+    "changes" : [
+      "性别：男 → 女"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "female",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "性别_M" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "性别_同为男不报" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "性别_女" : {
+    "changes" : [
+      "性别：男 → 女"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "female",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "性别_男" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "性别_认不出" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "每周增减_0.251舍到0.25" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "每周增减_舍入0.255" : {
+    "changes" : [
+      "每周增减：0.25kg → 0.26kg"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.26000000000000001
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "每周增减_舍入0.2551" : {
+    "changes" : [
+      "每周增减：0.25kg → 0.26kg"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.26000000000000001
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "每周增减_负数夹到0" : {
+    "changes" : [
+      "每周增减：0.25kg → 0.00kg"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "每周增减_超1夹到1" : {
+    "changes" : [
+      "每周增减：0.25kg → 1.00kg"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 1
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "活动系数_同值不报" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "活动系数_吸附1.55" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "活动系数_吸附1.375" : {
+    "changes" : [
+      "活动系数：1.6 → 1.4"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.375,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标_MAINTAIN" : {
+    "changes" : [
+      "目标类型：增肌 → 维持"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "maintain",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标_减重" : {
+    "changes" : [
+      "目标类型：增肌 → 减脂"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "cut",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标_增肌" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 100,
+        "deadliftKG" : 180,
+        "squatKG" : 140
+      },
+      "coachNotes" : [
+        "膝盖有旧伤，深蹲不要上太大重量"
+      ],
+      "goal" : {
+        "targetBodyFatPct" : 20,
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标_认不出" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标体脂_从未设置" : {
+    "changes" : [
+      "目标体脂：未设置 → 15%"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetBodyFatPct" : 15,
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标体脂_越界" : {
+    "changes" : [
+      "目标体脂：未设置 → 60%"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetBodyFatPct" : 60,
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标体脂_阈值内" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 100,
+        "deadliftKG" : 180,
+        "squatKG" : 140
+      },
+      "coachNotes" : [
+        "膝盖有旧伤，深蹲不要上太大重量"
+      ],
+      "goal" : {
+        "targetBodyFatPct" : 20,
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标体脂_阈值外" : {
+    "changes" : [
+      "目标体脂：20% → 20.1%"
+    ],
+    "updated" : {
+      "bigThree" : {
+        "benchKG" : 100,
+        "deadliftKG" : 180,
+        "squatKG" : 140
+      },
+      "coachNotes" : [
+        "膝盖有旧伤，深蹲不要上太大重量"
+      ],
+      "goal" : {
+        "targetBodyFatPct" : 20.100000000000001,
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标体重_上限" : {
+    "changes" : [
+      "目标体重：75kg → 200kg"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 200,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标体重_下限" : {
+    "changes" : [
+      "目标体重：75kg → 30kg"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 30,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标体重_阈值内" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "目标体重_阈值外" : {
+    "changes" : [
+      "目标体重：75kg → 75.1kg"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75.099999999999994,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "空载荷" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "身高_舍入到一位" : {
+    "changes" : [
+      "身高：175cm → 175.5cm"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175.5,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "身高_阈值内不报变更" : {
+    "changes" : [
+
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  },
+  "身高_阈值外报变更" : {
+    "changes" : [
+      "身高：175cm → 175.1cm"
+    ],
+    "updated" : {
+      "coachNotes" : [
+
+      ],
+      "goal" : {
+        "targetWeightKG" : 75,
+        "type" : "bulk",
+        "weeklyTargetDeltaKG" : 0.25
+      },
+      "profile" : {
+        "activityLevel" : 1.55,
+        "age" : 25,
+        "heightCM" : 175.09999999999999,
+        "sex" : "male",
+        "trainingDaysPerWeek" : 4
+      }
+    }
+  }
+}

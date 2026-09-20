@@ -1,0 +1,4356 @@
+{
+  "_meta" : {
+    "note" : "由 Mac 版 Swift 代码生成，网页版算法必须逐值对齐",
+    "timeZone" : "Asia\/Shanghai"
+  },
+  "anchor1RM_manualAnchors" : {
+    "上斜哑铃卧推" : 35,
+    "仰卧臂屈伸" : 18,
+    "保加利亚分腿蹲" : 28,
+    "哑铃侧平举" : 12,
+    "哑铃弯举" : 22,
+    "坐姿划船" : 85,
+    "坐姿提踵" : 168,
+    "引体向上" : -1,
+    "杠铃划船" : 85,
+    "杠铃卧推" : 100,
+    "杠铃深蹲" : 140,
+    "硬拉" : 180,
+    "站姿推举" : 62,
+    "站姿提踵" : 196,
+    "绳索下压" : 45,
+    "罗马尼亚硬拉" : 144,
+    "腿举" : 350,
+    "腿屈伸" : 77,
+    "腿弯举" : 63,
+    "臀桥" : 182,
+    "锤式弯举" : 24,
+    "面拉" : 40,
+    "高位下拉" : 95
+  },
+  "anchors" : {
+    "both" : {
+      "bench" : 100,
+      "deadlift" : 180,
+      "squat" : 140
+    },
+    "emptyData" : {
+
+    },
+    "historicalFromHistory" : {
+      "bench" : 132.5,
+      "deadlift" : 175,
+      "squat" : 140
+    },
+    "historyOnly" : {
+      "bench" : 132.5,
+      "deadlift" : 175,
+      "squat" : 140
+    },
+    "manualAnchors" : {
+      "bench" : 100,
+      "deadlift" : 180,
+      "squat" : 140
+    }
+  },
+  "best1RM" : {
+    "上斜哑铃卧推" : 0,
+    "仰卧臂屈伸" : 0,
+    "保加利亚分腿蹲" : 0,
+    "哑铃侧平举" : 0,
+    "哑铃弯举" : 0,
+    "坐姿划船" : 0,
+    "坐姿提踵" : 0,
+    "引体向上" : 0,
+    "杠铃划船" : 0,
+    "杠铃卧推" : 132,
+    "杠铃深蹲" : 139.33333333333331,
+    "硬拉" : 175,
+    "站姿推举" : 50.666666666666664,
+    "站姿提踵" : 0,
+    "绳索下压" : 35,
+    "罗马尼亚硬拉" : 120,
+    "腿举" : 0,
+    "腿屈伸" : 0,
+    "腿弯举" : 0,
+    "臀桥" : 0,
+    "锤式弯举" : 0,
+    "面拉" : 0,
+    "高位下拉" : 73.333333333333329
+  },
+  "calories" : {
+    "0.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 1,
+        "引体向上" : 1,
+        "杠铃卧推" : 1,
+        "杠铃深蹲" : 1,
+        "站姿提踵" : 1
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 23.625,
+        "引体向上" : 26.25,
+        "杠铃卧推" : 42,
+        "杠铃深蹲" : 52.5,
+        "站姿提踵" : 31.5
+      },
+      "total" : 175.875
+    },
+    "140.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 0.94000000000000006,
+        "引体向上" : 0.92000000000000004,
+        "杠铃卧推" : 0.92000000000000004,
+        "杠铃深蹲" : 0.92000000000000004,
+        "站姿提踵" : 0.96999999999999997
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 22.207500000000003,
+        "引体向上" : 24.150000000000002,
+        "杠铃卧推" : 38.640000000000001,
+        "杠铃深蹲" : 48.300000000000004,
+        "站姿提踵" : 30.555
+      },
+      "total" : 163.85250000000002
+    },
+    "150.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 0.95714285714285707,
+        "引体向上" : 0.92000000000000004,
+        "杠铃卧推" : 0.9285714285714286,
+        "杠铃深蹲" : 0.92000000000000004,
+        "站姿提踵" : 0.97857142857142854
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 22.612499999999997,
+        "引体向上" : 24.150000000000002,
+        "杠铃卧推" : 39,
+        "杠铃深蹲" : 48.300000000000004,
+        "站姿提踵" : 30.824999999999999
+      },
+      "total" : 164.88749999999999
+    },
+    "160.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 0.97428571428571431,
+        "引体向上" : 0.94857142857142851,
+        "杠铃卧推" : 0.95714285714285707,
+        "杠铃深蹲" : 0.93142857142857138,
+        "站姿提踵" : 0.9871428571428571
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 23.017500000000002,
+        "引体向上" : 24.899999999999999,
+        "杠铃卧推" : 40.199999999999996,
+        "杠铃深蹲" : 48.899999999999999,
+        "站姿提踵" : 31.094999999999999
+      },
+      "total" : 168.11249999999998
+    },
+    "170.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 0.99142857142857144,
+        "引体向上" : 0.98285714285714287,
+        "杠铃卧推" : 0.98571428571428577,
+        "杠铃深蹲" : 0.97714285714285709,
+        "站姿提踵" : 0.99571428571428566
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 23.422499999999999,
+        "引体向上" : 25.800000000000001,
+        "杠铃卧推" : 41.400000000000006,
+        "杠铃深蹲" : 51.299999999999997,
+        "站姿提踵" : 31.364999999999998
+      },
+      "total" : 173.28750000000002
+    },
+    "175.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 1,
+        "引体向上" : 1,
+        "杠铃卧推" : 1,
+        "杠铃深蹲" : 1,
+        "站姿提踵" : 1
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 23.625,
+        "引体向上" : 26.25,
+        "杠铃卧推" : 42,
+        "杠铃深蹲" : 52.5,
+        "站姿提踵" : 31.5
+      },
+      "total" : 175.875
+    },
+    "182.5" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 1.0128571428571429,
+        "引体向上" : 1.0257142857142858,
+        "杠铃卧推" : 1.0214285714285714,
+        "杠铃深蹲" : 1.0342857142857143,
+        "站姿提踵" : 1.0064285714285715
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 23.928750000000001,
+        "引体向上" : 26.925000000000001,
+        "杠铃卧推" : 42.899999999999999,
+        "杠铃深蹲" : 54.299999999999997,
+        "站姿提踵" : 31.702500000000001
+      },
+      "total" : 179.75624999999997
+    },
+    "190.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 1.0257142857142858,
+        "引体向上" : 1.0514285714285714,
+        "杠铃卧推" : 1.0428571428571427,
+        "杠铃深蹲" : 1.0685714285714285,
+        "站姿提踵" : 1.0128571428571429
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 24.232500000000002,
+        "引体向上" : 27.599999999999998,
+        "杠铃卧推" : 43.799999999999997,
+        "杠铃深蹲" : 56.099999999999994,
+        "站姿提踵" : 31.905000000000001
+      },
+      "total" : 183.63749999999999
+    },
+    "195.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 1.0342857142857143,
+        "引体向上" : 1.0685714285714285,
+        "杠铃卧推" : 1.0571428571428572,
+        "杠铃深蹲" : 1.0800000000000001,
+        "站姿提踵" : 1.0171428571428571
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 24.434999999999999,
+        "引体向上" : 28.049999999999997,
+        "杠铃卧推" : 44.399999999999999,
+        "杠铃深蹲" : 56.700000000000003,
+        "站姿提踵" : 32.039999999999999
+      },
+      "total" : 185.62499999999997
+    },
+    "210.0" : {
+      "base" : 175.875,
+      "factors" : {
+        "哑铃侧平举" : 1.0600000000000001,
+        "引体向上" : 1.0800000000000001,
+        "杠铃卧推" : 1.0800000000000001,
+        "杠铃深蹲" : 1.0800000000000001,
+        "站姿提踵" : 1.03
+      },
+      "perExercise" : {
+        "哑铃侧平举" : 25.0425,
+        "引体向上" : 28.350000000000001,
+        "杠铃卧推" : 45.359999999999999,
+        "杠铃深蹲" : 56.700000000000003,
+        "站姿提踵" : 32.445
+      },
+      "total" : 187.89750000000001
+    }
+  },
+  "defaultWeight" : {
+    "上斜哑铃卧推" : 12.5,
+    "仰卧臂屈伸" : 15,
+    "保加利亚分腿蹲" : 7.5,
+    "哑铃侧平举" : 15,
+    "哑铃弯举" : 15,
+    "坐姿划船" : 20,
+    "坐姿提踵" : 15,
+    "引体向上" : 0,
+    "杠铃划船" : 27.5,
+    "杠铃卧推" : 30,
+    "杠铃深蹲" : 37.5,
+    "硬拉" : 45,
+    "站姿推举" : 20,
+    "站姿提踵" : 15,
+    "绳索下压" : 15,
+    "罗马尼亚硬拉" : 37.5,
+    "腿举" : 45,
+    "腿屈伸" : 15,
+    "腿弯举" : 15,
+    "臀桥" : 22.5,
+    "锤式弯举" : 15,
+    "面拉" : 15,
+    "高位下拉" : 22.5
+  },
+  "diet" : {
+    "bulk_55.0" : {
+      "carb" : 469.078125,
+      "fat" : 49.5,
+      "kcal" : 2761.8125,
+      "protein" : 110
+    },
+    "bulk_70.0" : {
+      "carb" : 466.828125,
+      "fat" : 63,
+      "kcal" : 2994.3125,
+      "protein" : 140
+    },
+    "bulk_75.0" : {
+      "carb" : 466.078125,
+      "fat" : 67.5,
+      "kcal" : 3071.8125,
+      "protein" : 150
+    },
+    "bulk_90.0" : {
+      "carb" : 463.828125,
+      "fat" : 81,
+      "kcal" : 3304.3125,
+      "protein" : 180
+    },
+    "cut_55.0" : {
+      "carb" : 269.078125,
+      "fat" : 49.5,
+      "kcal" : 1961.8125,
+      "protein" : 110
+    },
+    "cut_70.0" : {
+      "carb" : 266.828125,
+      "fat" : 63,
+      "kcal" : 2194.3125,
+      "protein" : 140
+    },
+    "cut_75.0" : {
+      "carb" : 266.078125,
+      "fat" : 67.5,
+      "kcal" : 2271.8125,
+      "protein" : 150
+    },
+    "cut_90.0" : {
+      "carb" : 263.828125,
+      "fat" : 81,
+      "kcal" : 2504.3125,
+      "protein" : 180
+    },
+    "maintain_55.0" : {
+      "carb" : 391.078125,
+      "fat" : 49.5,
+      "kcal" : 2361.8125,
+      "protein" : 88
+    },
+    "maintain_70.0" : {
+      "carb" : 394.828125,
+      "fat" : 63,
+      "kcal" : 2594.3125,
+      "protein" : 112
+    },
+    "maintain_75.0" : {
+      "carb" : 396.078125,
+      "fat" : 67.5,
+      "kcal" : 2671.8125,
+      "protein" : 120
+    },
+    "maintain_90.0" : {
+      "carb" : 399.828125,
+      "fat" : 81,
+      "kcal" : 2904.3125,
+      "protein" : 144
+    }
+  },
+  "generatedPlan" : {
+    "1_0" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "1_1" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "1_2" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "1_3" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "1_4" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "1_5" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "1_6" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "2_0" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "2_1" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "2_2" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "2_3" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "2_4" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "2_5" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "2_6" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "3_0" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    },
+    "3_1" : {
+      "exercises" : [
+        {
+          "name" : "硬拉",
+          "targetReps" : 6,
+          "targetSets" : 4,
+          "targetWeightKG" : 145
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "面拉",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "锤式弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 17.5
+        }
+      ],
+      "splitName" : "拉"
+    },
+    "3_2" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "腿"
+    },
+    "3_3" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    },
+    "3_4" : {
+      "exercises" : [
+        {
+          "name" : "硬拉",
+          "targetReps" : 6,
+          "targetSets" : 4,
+          "targetWeightKG" : 145
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "面拉",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "锤式弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 17.5
+        }
+      ],
+      "splitName" : "拉"
+    },
+    "3_5" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "腿"
+    },
+    "3_6" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    },
+    "4_0" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "坐姿划船",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "上肢A"
+    },
+    "4_1" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 4,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "下肢A"
+    },
+    "4_2" : {
+      "exercises" : [
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "高位下拉",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 55
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "锤式弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 17.5
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "上肢B"
+    },
+    "4_3" : {
+      "exercises" : [
+        {
+          "name" : "硬拉",
+          "targetReps" : 6,
+          "targetSets" : 4,
+          "targetWeightKG" : 145
+        },
+        {
+          "name" : "保加利亚分腿蹲",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 20
+        },
+        {
+          "name" : "腿屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 55
+        },
+        {
+          "name" : "臀桥",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 130
+        },
+        {
+          "name" : "坐姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 112.5
+        }
+      ],
+      "splitName" : "下肢B"
+    },
+    "4_4" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "坐姿划船",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "上肢A"
+    },
+    "4_5" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 4,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "下肢A"
+    },
+    "4_6" : {
+      "exercises" : [
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "高位下拉",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 55
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "锤式弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 17.5
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "上肢B"
+    },
+    "5_0" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    },
+    "5_1" : {
+      "exercises" : [
+        {
+          "name" : "硬拉",
+          "targetReps" : 6,
+          "targetSets" : 4,
+          "targetWeightKG" : 145
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "面拉",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "锤式弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 17.5
+        }
+      ],
+      "splitName" : "拉"
+    },
+    "5_2" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "腿"
+    },
+    "5_3" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "坐姿划船",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "上肢A"
+    },
+    "5_4" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 4,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "下肢A"
+    },
+    "5_5" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    },
+    "5_6" : {
+      "exercises" : [
+        {
+          "name" : "硬拉",
+          "targetReps" : 6,
+          "targetSets" : 4,
+          "targetWeightKG" : 145
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "面拉",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "锤式弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 17.5
+        }
+      ],
+      "splitName" : "拉"
+    },
+    "6_0" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    },
+    "6_1" : {
+      "exercises" : [
+        {
+          "name" : "硬拉",
+          "targetReps" : 6,
+          "targetSets" : 4,
+          "targetWeightKG" : 145
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "面拉",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "锤式弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 17.5
+        }
+      ],
+      "splitName" : "拉"
+    },
+    "6_2" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "腿"
+    },
+    "6_3" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "坐姿划船",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "上肢A"
+    },
+    "6_4" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 4,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "下肢A"
+    },
+    "6_5" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "6_6" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    },
+    "7_0" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    },
+    "7_1" : {
+      "exercises" : [
+        {
+          "name" : "硬拉",
+          "targetReps" : 6,
+          "targetSets" : 4,
+          "targetWeightKG" : 145
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "面拉",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "锤式弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 17.5
+        }
+      ],
+      "splitName" : "拉"
+    },
+    "7_2" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "腿"
+    },
+    "7_3" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "坐姿划船",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 65
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "引体向上",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 0
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "上肢A"
+    },
+    "7_4" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "targetReps" : 10,
+          "targetSets" : 4,
+          "targetWeightKG" : 90
+        },
+        {
+          "name" : "腿举",
+          "targetReps" : 12,
+          "targetSets" : 4,
+          "targetWeightKG" : 250
+        },
+        {
+          "name" : "腿弯举",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 45
+        },
+        {
+          "name" : "站姿提踵",
+          "targetReps" : 15,
+          "targetSets" : 4,
+          "targetWeightKG" : 130
+        }
+      ],
+      "splitName" : "下肢A"
+    },
+    "7_5" : {
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 110
+        },
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "杠铃划船",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 67.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 37.5
+        },
+        {
+          "name" : "哑铃弯举",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 15
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 2,
+          "targetWeightKG" : 25
+        }
+      ],
+      "splitName" : "全身"
+    },
+    "7_6" : {
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "targetReps" : 8,
+          "targetSets" : 4,
+          "targetWeightKG" : 80
+        },
+        {
+          "name" : "上斜哑铃卧推",
+          "targetReps" : 10,
+          "targetSets" : 3,
+          "targetWeightKG" : 27.5
+        },
+        {
+          "name" : "站姿推举",
+          "targetReps" : 8,
+          "targetSets" : 3,
+          "targetWeightKG" : 40
+        },
+        {
+          "name" : "哑铃侧平举",
+          "targetReps" : 15,
+          "targetSets" : 3,
+          "targetWeightKG" : 7.5
+        },
+        {
+          "name" : "绳索下压",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 25
+        },
+        {
+          "name" : "仰卧臂屈伸",
+          "targetReps" : 12,
+          "targetSets" : 3,
+          "targetWeightKG" : 12.5
+        }
+      ],
+      "splitName" : "推"
+    }
+  },
+  "ics" : "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-\/\/FitTrack\/\/Training\/\/CN\r\nCALSCALE:GREGORIAN\r\nBEGIN:VEVENT\r\nUID:11111111-2222-3333-4444-555555555555@fittrack\r\nDTSTART;VALUE=DATE:20260920\r\nSUMMARY:🏋️ 训练：推\r\nDESCRIPTION:杠铃卧推 4x8 67.5kg · 43千卡, 引体向上 3x8 自重 · 27千卡, 哑铃侧平举 3x15 10.0kg · 24千卡, 杠铃深蹲 5x5 100.0kg · 54千卡, 站姿提踵 4x15 80.0kg · 32千卡, 预计消耗 180 千卡（身高 182cm 行程修正 ×1.02）\r\nEND:VEVENT\r\nEND:VCALENDAR",
+  "intensity" : {
+    "0" : 0.75,
+    "1" : 0.96774193548387089,
+    "3" : 0.90909090909090906,
+    "5" : 0.8571428571428571,
+    "6" : 0.83333333333333337,
+    "8" : 0.78947368421052633,
+    "10" : 0.75,
+    "12" : 0.7142857142857143,
+    "15" : 0.66666666666666663,
+    "20" : 0.60000000000000009
+  },
+  "mealPlan" : {
+    "bulk" : [
+      "目标：3072 千卡 \/ 蛋白质 150g \/ 碳水 466g \/ 脂肪 68g",
+      "第1餐：乳清蛋白粉 47g + 燕麦 177g + 橄榄油 17g",
+      "第2餐：乳清蛋白粉 47g + 燕麦 177g + 橄榄油 17g",
+      "第3餐：乳清蛋白粉 47g + 燕麦 177g + 橄榄油 17g",
+      "第4餐：乳清蛋白粉 47g + 燕麦 177g + 橄榄油 17g"
+    ],
+    "cut" : [
+      "目标：2272 千卡 \/ 蛋白质 150g \/ 碳水 266g \/ 脂肪 68g",
+      "第1餐：乳清蛋白粉 47g + 燕麦 101g + 橄榄油 17g",
+      "第2餐：乳清蛋白粉 47g + 燕麦 101g + 橄榄油 17g",
+      "第3餐：乳清蛋白粉 47g + 燕麦 101g + 橄榄油 17g",
+      "第4餐：乳清蛋白粉 47g + 燕麦 101g + 橄榄油 17g"
+    ],
+    "emptyLibrary" : [
+      "食物库为空，请先导入或补充食物"
+    ],
+    "maintain" : [
+      "目标：2672 千卡 \/ 蛋白质 120g \/ 碳水 396g \/ 脂肪 68g",
+      "第1餐：乳清蛋白粉 38g + 燕麦 150g + 橄榄油 17g",
+      "第2餐：乳清蛋白粉 38g + 燕麦 150g + 橄榄油 17g",
+      "第3餐：乳清蛋白粉 38g + 燕麦 150g + 橄榄油 17g",
+      "第4餐：乳清蛋白粉 38g + 燕麦 150g + 橄榄油 17g"
+    ]
+  },
+  "oneRepMax" : {
+    "0.0_0" : 0,
+    "0.0_1" : 0,
+    "0.0_3" : 0,
+    "0.0_5" : 0,
+    "0.0_8" : 0,
+    "0.0_12" : 0,
+    "0.0_20" : 0,
+    "40.0_0" : 0,
+    "40.0_1" : 41.333333333333336,
+    "40.0_3" : 44,
+    "40.0_5" : 46.666666666666671,
+    "40.0_8" : 50.666666666666664,
+    "40.0_12" : 56,
+    "40.0_20" : 66.666666666666657,
+    "60.0_0" : 0,
+    "60.0_1" : 62.000000000000007,
+    "60.0_3" : 66,
+    "60.0_5" : 70,
+    "60.0_8" : 76,
+    "60.0_12" : 84,
+    "60.0_20" : 99.999999999999986,
+    "80.0_0" : 0,
+    "80.0_1" : 82.666666666666671,
+    "80.0_3" : 88,
+    "80.0_5" : 93.333333333333343,
+    "80.0_8" : 101.33333333333333,
+    "80.0_12" : 112,
+    "80.0_20" : 133.33333333333331,
+    "100.0_0" : 0,
+    "100.0_1" : 103.33333333333334,
+    "100.0_3" : 110.00000000000001,
+    "100.0_5" : 116.66666666666667,
+    "100.0_8" : 126.66666666666666,
+    "100.0_12" : 140,
+    "100.0_20" : 166.66666666666666,
+    "132.5_0" : 0,
+    "132.5_1" : 136.91666666666669,
+    "132.5_3" : 145.75,
+    "132.5_5" : 154.58333333333334,
+    "132.5_8" : 167.83333333333331,
+    "132.5_12" : 185.5,
+    "132.5_20" : 220.83333333333331
+  },
+  "planDates" : [
+    "2026-09-20T12:00:00Z",
+    "2026-09-21T12:00:00Z",
+    "2026-09-22T12:00:00Z",
+    "2026-09-23T12:00:00Z",
+    "2026-09-24T12:00:00Z",
+    "2026-09-25T12:00:00Z",
+    "2026-09-26T12:00:00Z"
+  ],
+  "prescribed" : {
+    "both" : {
+      "上斜哑铃卧推" : {
+        "3" : 32.5,
+        "5" : 30,
+        "6" : 30,
+        "8" : 27.5,
+        "10" : 27.5,
+        "12" : 25,
+        "15" : 22.5,
+        "20" : 20
+      },
+      "仰卧臂屈伸" : {
+        "3" : 17.5,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 12.5,
+        "12" : 12.5,
+        "15" : 12.5,
+        "20" : 10
+      },
+      "保加利亚分腿蹲" : {
+        "3" : 25,
+        "5" : 25,
+        "6" : 22.5,
+        "8" : 22.5,
+        "10" : 20,
+        "12" : 20,
+        "15" : 17.5,
+        "20" : 17.5
+      },
+      "哑铃侧平举" : {
+        "3" : 10,
+        "5" : 10,
+        "6" : 10,
+        "8" : 10,
+        "10" : 10,
+        "12" : 7.5,
+        "15" : 7.5,
+        "20" : 7.5
+      },
+      "哑铃弯举" : {
+        "3" : 20,
+        "5" : 20,
+        "6" : 17.5,
+        "8" : 17.5,
+        "10" : 17.5,
+        "12" : 15,
+        "15" : 15,
+        "20" : 12.5
+      },
+      "坐姿划船" : {
+        "3" : 77.5,
+        "5" : 72.5,
+        "6" : 70,
+        "8" : 67.5,
+        "10" : 65,
+        "12" : 60,
+        "15" : 57.5,
+        "20" : 50
+      },
+      "坐姿提踵" : {
+        "3" : 152.5,
+        "5" : 145,
+        "6" : 140,
+        "8" : 132.5,
+        "10" : 125,
+        "12" : 120,
+        "15" : 112.5,
+        "20" : 100
+      },
+      "引体向上" : {
+        "3" : 0,
+        "5" : 0,
+        "6" : 0,
+        "8" : 0,
+        "10" : 0,
+        "12" : 0,
+        "15" : 0,
+        "20" : 0
+      },
+      "杠铃划船" : {
+        "3" : 77.5,
+        "5" : 72.5,
+        "6" : 70,
+        "8" : 67.5,
+        "10" : 65,
+        "12" : 60,
+        "15" : 57.5,
+        "20" : 50
+      },
+      "杠铃卧推" : {
+        "3" : 92.5,
+        "5" : 87.5,
+        "6" : 85,
+        "8" : 80,
+        "10" : 75,
+        "12" : 72.5,
+        "15" : 67.5,
+        "20" : 60
+      },
+      "杠铃深蹲" : {
+        "3" : 127.5,
+        "5" : 120,
+        "6" : 115,
+        "8" : 110,
+        "10" : 105,
+        "12" : 100,
+        "15" : 92.5,
+        "20" : 82.5
+      },
+      "硬拉" : {
+        "3" : 160,
+        "5" : 150,
+        "6" : 145,
+        "8" : 137.5,
+        "10" : 132.5,
+        "12" : 125,
+        "15" : 117.5,
+        "20" : 105
+      },
+      "站姿推举" : {
+        "3" : 45,
+        "5" : 42.5,
+        "6" : 42.5,
+        "8" : 40,
+        "10" : 37.5,
+        "12" : 35,
+        "15" : 35,
+        "20" : 30
+      },
+      "站姿提踵" : {
+        "3" : 177.5,
+        "5" : 167.5,
+        "6" : 162.5,
+        "8" : 155,
+        "10" : 147.5,
+        "12" : 140,
+        "15" : 130,
+        "20" : 117.5
+      },
+      "绳索下压" : {
+        "3" : 32.5,
+        "5" : 30,
+        "6" : 30,
+        "8" : 27.5,
+        "10" : 27.5,
+        "12" : 25,
+        "15" : 22.5,
+        "20" : 20
+      },
+      "罗马尼亚硬拉" : {
+        "3" : 110,
+        "5" : 102.5,
+        "6" : 100,
+        "8" : 95,
+        "10" : 90,
+        "12" : 85,
+        "15" : 80,
+        "20" : 72.5
+      },
+      "腿举" : {
+        "3" : 317.5,
+        "5" : 300,
+        "6" : 292.5,
+        "8" : 277.5,
+        "10" : 262.5,
+        "12" : 250,
+        "15" : 232.5,
+        "20" : 210
+      },
+      "腿屈伸" : {
+        "3" : 70,
+        "5" : 65,
+        "6" : 65,
+        "8" : 60,
+        "10" : 57.5,
+        "12" : 55,
+        "15" : 52.5,
+        "20" : 45
+      },
+      "腿弯举" : {
+        "3" : 57.5,
+        "5" : 55,
+        "6" : 52.5,
+        "8" : 50,
+        "10" : 47.5,
+        "12" : 45,
+        "15" : 42.5,
+        "20" : 37.5
+      },
+      "臀桥" : {
+        "3" : 165,
+        "5" : 155,
+        "6" : 152.5,
+        "8" : 142.5,
+        "10" : 137.5,
+        "12" : 130,
+        "15" : 122.5,
+        "20" : 110
+      },
+      "锤式弯举" : {
+        "3" : 22.5,
+        "5" : 20,
+        "6" : 20,
+        "8" : 20,
+        "10" : 17.5,
+        "12" : 17.5,
+        "15" : 15,
+        "20" : 15
+      },
+      "面拉" : {
+        "3" : 37.5,
+        "5" : 35,
+        "6" : 32.5,
+        "8" : 32.5,
+        "10" : 30,
+        "12" : 27.5,
+        "15" : 27.5,
+        "20" : 25
+      },
+      "高位下拉" : {
+        "3" : 67.5,
+        "5" : 62.5,
+        "6" : 60,
+        "8" : 57.5,
+        "10" : 55,
+        "12" : 52.5,
+        "15" : 50,
+        "20" : 45
+      }
+    },
+    "emptyData" : {
+      "上斜哑铃卧推" : {
+        "3" : 12.5,
+        "5" : 12.5,
+        "6" : 12.5,
+        "8" : 12.5,
+        "10" : 12.5,
+        "12" : 12.5,
+        "15" : 12.5,
+        "20" : 12.5
+      },
+      "仰卧臂屈伸" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "保加利亚分腿蹲" : {
+        "3" : 7.5,
+        "5" : 7.5,
+        "6" : 7.5,
+        "8" : 7.5,
+        "10" : 7.5,
+        "12" : 7.5,
+        "15" : 7.5,
+        "20" : 7.5
+      },
+      "哑铃侧平举" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "哑铃弯举" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "坐姿划船" : {
+        "3" : 20,
+        "5" : 20,
+        "6" : 20,
+        "8" : 20,
+        "10" : 20,
+        "12" : 20,
+        "15" : 20,
+        "20" : 20
+      },
+      "坐姿提踵" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "引体向上" : {
+        "3" : 0,
+        "5" : 0,
+        "6" : 0,
+        "8" : 0,
+        "10" : 0,
+        "12" : 0,
+        "15" : 0,
+        "20" : 0
+      },
+      "杠铃划船" : {
+        "3" : 27.5,
+        "5" : 27.5,
+        "6" : 27.5,
+        "8" : 27.5,
+        "10" : 27.5,
+        "12" : 27.5,
+        "15" : 27.5,
+        "20" : 27.5
+      },
+      "杠铃卧推" : {
+        "3" : 30,
+        "5" : 30,
+        "6" : 30,
+        "8" : 30,
+        "10" : 30,
+        "12" : 30,
+        "15" : 30,
+        "20" : 30
+      },
+      "杠铃深蹲" : {
+        "3" : 37.5,
+        "5" : 37.5,
+        "6" : 37.5,
+        "8" : 37.5,
+        "10" : 37.5,
+        "12" : 37.5,
+        "15" : 37.5,
+        "20" : 37.5
+      },
+      "硬拉" : {
+        "3" : 45,
+        "5" : 45,
+        "6" : 45,
+        "8" : 45,
+        "10" : 45,
+        "12" : 45,
+        "15" : 45,
+        "20" : 45
+      },
+      "站姿推举" : {
+        "3" : 20,
+        "5" : 20,
+        "6" : 20,
+        "8" : 20,
+        "10" : 20,
+        "12" : 20,
+        "15" : 20,
+        "20" : 20
+      },
+      "站姿提踵" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "绳索下压" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "罗马尼亚硬拉" : {
+        "3" : 37.5,
+        "5" : 37.5,
+        "6" : 37.5,
+        "8" : 37.5,
+        "10" : 37.5,
+        "12" : 37.5,
+        "15" : 37.5,
+        "20" : 37.5
+      },
+      "腿举" : {
+        "3" : 45,
+        "5" : 45,
+        "6" : 45,
+        "8" : 45,
+        "10" : 45,
+        "12" : 45,
+        "15" : 45,
+        "20" : 45
+      },
+      "腿屈伸" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "腿弯举" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "臀桥" : {
+        "3" : 22.5,
+        "5" : 22.5,
+        "6" : 22.5,
+        "8" : 22.5,
+        "10" : 22.5,
+        "12" : 22.5,
+        "15" : 22.5,
+        "20" : 22.5
+      },
+      "锤式弯举" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "面拉" : {
+        "3" : 15,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 15,
+        "12" : 15,
+        "15" : 15,
+        "20" : 15
+      },
+      "高位下拉" : {
+        "3" : 22.5,
+        "5" : 22.5,
+        "6" : 22.5,
+        "8" : 22.5,
+        "10" : 22.5,
+        "12" : 22.5,
+        "15" : 22.5,
+        "20" : 22.5
+      }
+    },
+    "historyOnly" : {
+      "上斜哑铃卧推" : {
+        "3" : 42.5,
+        "5" : 40,
+        "6" : 37.5,
+        "8" : 37.5,
+        "10" : 35,
+        "12" : 32.5,
+        "15" : 30,
+        "20" : 27.5
+      },
+      "仰卧臂屈伸" : {
+        "3" : 22.5,
+        "5" : 20,
+        "6" : 20,
+        "8" : 20,
+        "10" : 17.5,
+        "12" : 17.5,
+        "15" : 15,
+        "20" : 15
+      },
+      "保加利亚分腿蹲" : {
+        "3" : 25,
+        "5" : 25,
+        "6" : 22.5,
+        "8" : 22.5,
+        "10" : 20,
+        "12" : 20,
+        "15" : 17.5,
+        "20" : 17.5
+      },
+      "哑铃侧平举" : {
+        "3" : 15,
+        "5" : 12.5,
+        "6" : 12.5,
+        "8" : 12.5,
+        "10" : 12.5,
+        "12" : 12.5,
+        "15" : 10,
+        "20" : 10
+      },
+      "哑铃弯举" : {
+        "3" : 27.5,
+        "5" : 25,
+        "6" : 25,
+        "8" : 22.5,
+        "10" : 22.5,
+        "12" : 20,
+        "15" : 20,
+        "20" : 17.5
+      },
+      "坐姿划船" : {
+        "3" : 102.5,
+        "5" : 97.5,
+        "6" : 95,
+        "8" : 90,
+        "10" : 85,
+        "12" : 80,
+        "15" : 75,
+        "20" : 67.5
+      },
+      "坐姿提踵" : {
+        "3" : 152.5,
+        "5" : 145,
+        "6" : 140,
+        "8" : 132.5,
+        "10" : 125,
+        "12" : 120,
+        "15" : 112.5,
+        "20" : 100
+      },
+      "引体向上" : {
+        "3" : 0,
+        "5" : 0,
+        "6" : 0,
+        "8" : 0,
+        "10" : 0,
+        "12" : 0,
+        "15" : 0,
+        "20" : 0
+      },
+      "杠铃划船" : {
+        "3" : 102.5,
+        "5" : 97.5,
+        "6" : 95,
+        "8" : 90,
+        "10" : 85,
+        "12" : 80,
+        "15" : 75,
+        "20" : 67.5
+      },
+      "杠铃卧推" : {
+        "3" : 92.5,
+        "5" : 87.5,
+        "6" : 85,
+        "8" : 80,
+        "10" : 75,
+        "12" : 72.5,
+        "15" : 67.5,
+        "20" : 60
+      },
+      "杠铃深蹲" : {
+        "3" : 127.5,
+        "5" : 120,
+        "6" : 115,
+        "8" : 110,
+        "10" : 105,
+        "12" : 100,
+        "15" : 92.5,
+        "20" : 82.5
+      },
+      "硬拉" : {
+        "3" : 160,
+        "5" : 150,
+        "6" : 145,
+        "8" : 137.5,
+        "10" : 132.5,
+        "12" : 125,
+        "15" : 117.5,
+        "20" : 105
+      },
+      "站姿推举" : {
+        "3" : 45,
+        "5" : 42.5,
+        "6" : 42.5,
+        "8" : 40,
+        "10" : 37.5,
+        "12" : 35,
+        "15" : 35,
+        "20" : 30
+      },
+      "站姿提踵" : {
+        "3" : 177.5,
+        "5" : 167.5,
+        "6" : 162.5,
+        "8" : 155,
+        "10" : 147.5,
+        "12" : 140,
+        "15" : 130,
+        "20" : 117.5
+      },
+      "绳索下压" : {
+        "3" : 32.5,
+        "5" : 30,
+        "6" : 30,
+        "8" : 27.5,
+        "10" : 27.5,
+        "12" : 25,
+        "15" : 22.5,
+        "20" : 20
+      },
+      "罗马尼亚硬拉" : {
+        "3" : 110,
+        "5" : 102.5,
+        "6" : 100,
+        "8" : 95,
+        "10" : 90,
+        "12" : 85,
+        "15" : 80,
+        "20" : 72.5
+      },
+      "腿举" : {
+        "3" : 317.5,
+        "5" : 300,
+        "6" : 292.5,
+        "8" : 277.5,
+        "10" : 262.5,
+        "12" : 250,
+        "15" : 232.5,
+        "20" : 210
+      },
+      "腿屈伸" : {
+        "3" : 70,
+        "5" : 65,
+        "6" : 65,
+        "8" : 60,
+        "10" : 57.5,
+        "12" : 55,
+        "15" : 52.5,
+        "20" : 45
+      },
+      "腿弯举" : {
+        "3" : 57.5,
+        "5" : 55,
+        "6" : 52.5,
+        "8" : 50,
+        "10" : 47.5,
+        "12" : 45,
+        "15" : 42.5,
+        "20" : 37.5
+      },
+      "臀桥" : {
+        "3" : 165,
+        "5" : 155,
+        "6" : 152.5,
+        "8" : 142.5,
+        "10" : 137.5,
+        "12" : 130,
+        "15" : 122.5,
+        "20" : 110
+      },
+      "锤式弯举" : {
+        "3" : 30,
+        "5" : 27.5,
+        "6" : 27.5,
+        "8" : 25,
+        "10" : 25,
+        "12" : 22.5,
+        "15" : 20,
+        "20" : 20
+      },
+      "面拉" : {
+        "3" : 47.5,
+        "5" : 45,
+        "6" : 45,
+        "8" : 42.5,
+        "10" : 40,
+        "12" : 37.5,
+        "15" : 35,
+        "20" : 32.5
+      },
+      "高位下拉" : {
+        "3" : 67.5,
+        "5" : 62.5,
+        "6" : 60,
+        "8" : 57.5,
+        "10" : 55,
+        "12" : 52.5,
+        "15" : 50,
+        "20" : 45
+      }
+    },
+    "manualAnchors" : {
+      "上斜哑铃卧推" : {
+        "3" : 32.5,
+        "5" : 30,
+        "6" : 30,
+        "8" : 27.5,
+        "10" : 27.5,
+        "12" : 25,
+        "15" : 22.5,
+        "20" : 20
+      },
+      "仰卧臂屈伸" : {
+        "3" : 17.5,
+        "5" : 15,
+        "6" : 15,
+        "8" : 15,
+        "10" : 12.5,
+        "12" : 12.5,
+        "15" : 12.5,
+        "20" : 10
+      },
+      "保加利亚分腿蹲" : {
+        "3" : 25,
+        "5" : 25,
+        "6" : 22.5,
+        "8" : 22.5,
+        "10" : 20,
+        "12" : 20,
+        "15" : 17.5,
+        "20" : 17.5
+      },
+      "哑铃侧平举" : {
+        "3" : 10,
+        "5" : 10,
+        "6" : 10,
+        "8" : 10,
+        "10" : 10,
+        "12" : 7.5,
+        "15" : 7.5,
+        "20" : 7.5
+      },
+      "哑铃弯举" : {
+        "3" : 20,
+        "5" : 20,
+        "6" : 17.5,
+        "8" : 17.5,
+        "10" : 17.5,
+        "12" : 15,
+        "15" : 15,
+        "20" : 12.5
+      },
+      "坐姿划船" : {
+        "3" : 77.5,
+        "5" : 72.5,
+        "6" : 70,
+        "8" : 67.5,
+        "10" : 65,
+        "12" : 60,
+        "15" : 57.5,
+        "20" : 50
+      },
+      "坐姿提踵" : {
+        "3" : 152.5,
+        "5" : 145,
+        "6" : 140,
+        "8" : 132.5,
+        "10" : 125,
+        "12" : 120,
+        "15" : 112.5,
+        "20" : 100
+      },
+      "引体向上" : {
+        "3" : 0,
+        "5" : 0,
+        "6" : 0,
+        "8" : 0,
+        "10" : 0,
+        "12" : 0,
+        "15" : 0,
+        "20" : 0
+      },
+      "杠铃划船" : {
+        "3" : 77.5,
+        "5" : 72.5,
+        "6" : 70,
+        "8" : 67.5,
+        "10" : 65,
+        "12" : 60,
+        "15" : 57.5,
+        "20" : 50
+      },
+      "杠铃卧推" : {
+        "3" : 90,
+        "5" : 85,
+        "6" : 82.5,
+        "8" : 80,
+        "10" : 75,
+        "12" : 72.5,
+        "15" : 67.5,
+        "20" : 60
+      },
+      "杠铃深蹲" : {
+        "3" : 127.5,
+        "5" : 120,
+        "6" : 117.5,
+        "8" : 110,
+        "10" : 105,
+        "12" : 100,
+        "15" : 92.5,
+        "20" : 85
+      },
+      "硬拉" : {
+        "3" : 162.5,
+        "5" : 155,
+        "6" : 150,
+        "8" : 142.5,
+        "10" : 135,
+        "12" : 127.5,
+        "15" : 120,
+        "20" : 107.5
+      },
+      "站姿推举" : {
+        "3" : 57.5,
+        "5" : 52.5,
+        "6" : 52.5,
+        "8" : 50,
+        "10" : 47.5,
+        "12" : 45,
+        "15" : 42.5,
+        "20" : 37.5
+      },
+      "站姿提踵" : {
+        "3" : 177.5,
+        "5" : 167.5,
+        "6" : 162.5,
+        "8" : 155,
+        "10" : 147.5,
+        "12" : 140,
+        "15" : 130,
+        "20" : 117.5
+      },
+      "绳索下压" : {
+        "3" : 40,
+        "5" : 37.5,
+        "6" : 37.5,
+        "8" : 35,
+        "10" : 35,
+        "12" : 32.5,
+        "15" : 30,
+        "20" : 27.5
+      },
+      "罗马尼亚硬拉" : {
+        "3" : 130,
+        "5" : 122.5,
+        "6" : 120,
+        "8" : 112.5,
+        "10" : 107.5,
+        "12" : 102.5,
+        "15" : 95,
+        "20" : 87.5
+      },
+      "腿举" : {
+        "3" : 317.5,
+        "5" : 300,
+        "6" : 292.5,
+        "8" : 277.5,
+        "10" : 262.5,
+        "12" : 250,
+        "15" : 232.5,
+        "20" : 210
+      },
+      "腿屈伸" : {
+        "3" : 70,
+        "5" : 65,
+        "6" : 65,
+        "8" : 60,
+        "10" : 57.5,
+        "12" : 55,
+        "15" : 52.5,
+        "20" : 45
+      },
+      "腿弯举" : {
+        "3" : 57.5,
+        "5" : 55,
+        "6" : 52.5,
+        "8" : 50,
+        "10" : 47.5,
+        "12" : 45,
+        "15" : 42.5,
+        "20" : 37.5
+      },
+      "臀桥" : {
+        "3" : 165,
+        "5" : 155,
+        "6" : 152.5,
+        "8" : 142.5,
+        "10" : 137.5,
+        "12" : 130,
+        "15" : 122.5,
+        "20" : 110
+      },
+      "锤式弯举" : {
+        "3" : 22.5,
+        "5" : 20,
+        "6" : 20,
+        "8" : 20,
+        "10" : 17.5,
+        "12" : 17.5,
+        "15" : 15,
+        "20" : 15
+      },
+      "面拉" : {
+        "3" : 37.5,
+        "5" : 35,
+        "6" : 32.5,
+        "8" : 32.5,
+        "10" : 30,
+        "12" : 27.5,
+        "15" : 27.5,
+        "20" : 25
+      },
+      "高位下拉" : {
+        "3" : 87.5,
+        "5" : 82.5,
+        "6" : 80,
+        "8" : 75,
+        "10" : 72.5,
+        "12" : 67.5,
+        "15" : 62.5,
+        "20" : 57.5
+      }
+    }
+  },
+  "prescription1RM_30d" : {
+    "上斜哑铃卧推" : 0,
+    "仰卧臂屈伸" : 0,
+    "保加利亚分腿蹲" : 0,
+    "哑铃侧平举" : 0,
+    "哑铃弯举" : 0,
+    "坐姿划船" : 0,
+    "坐姿提踵" : 0,
+    "引体向上" : 0,
+    "杠铃划船" : 0,
+    "杠铃卧推" : 101.33333333333333,
+    "杠铃深蹲" : 139.33333333333331,
+    "硬拉" : 175,
+    "站姿推举" : 50.666666666666664,
+    "站姿提踵" : 0,
+    "绳索下压" : 35,
+    "罗马尼亚硬拉" : 120,
+    "腿举" : 0,
+    "腿屈伸" : 0,
+    "腿弯举" : 0,
+    "臀桥" : 0,
+    "锤式弯举" : 0,
+    "面拉" : 0,
+    "高位下拉" : 73.333333333333329
+  },
+  "roundToPlate" : {
+    "0.0" : 0,
+    "1.2" : 0,
+    "1.25" : 2.5,
+    "2.4" : 2.5,
+    "2.5" : 2.5,
+    "3.74" : 2.5,
+    "3.75" : 5,
+    "5.0" : 5,
+    "62.3" : 62.5,
+    "62.5" : 62.5,
+    "63.7" : 62.5,
+    "100.0" : 100
+  },
+  "splits" : {
+    "1" : [
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 2
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 2
+          }
+        ],
+        "name" : "全身"
+      }
+    ],
+    "2" : [
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 2
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 2
+          }
+        ],
+        "name" : "全身"
+      }
+    ],
+    "3" : [
+      {
+        "items" : [
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "上斜哑铃卧推",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃侧平举",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "仰卧臂屈伸",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "推"
+      },
+      {
+        "items" : [
+          {
+            "name" : "硬拉",
+            "reps" : 6,
+            "sets" : 4
+          },
+          {
+            "name" : "引体向上",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "面拉",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "锤式弯举",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "拉"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "罗马尼亚硬拉",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "腿举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "腿弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "腿"
+      }
+    ],
+    "4" : [
+      {
+        "items" : [
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "坐姿划船",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "引体向上",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "上肢A"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "罗马尼亚硬拉",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "腿举",
+            "reps" : 12,
+            "sets" : 4
+          },
+          {
+            "name" : "腿弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "下肢A"
+      },
+      {
+        "items" : [
+          {
+            "name" : "上斜哑铃卧推",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "高位下拉",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "哑铃侧平举",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "锤式弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "仰卧臂屈伸",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "上肢B"
+      },
+      {
+        "items" : [
+          {
+            "name" : "硬拉",
+            "reps" : 6,
+            "sets" : 4
+          },
+          {
+            "name" : "保加利亚分腿蹲",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "腿屈伸",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "臀桥",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "坐姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "下肢B"
+      }
+    ],
+    "5" : [
+      {
+        "items" : [
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "上斜哑铃卧推",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃侧平举",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "仰卧臂屈伸",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "推"
+      },
+      {
+        "items" : [
+          {
+            "name" : "硬拉",
+            "reps" : 6,
+            "sets" : 4
+          },
+          {
+            "name" : "引体向上",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "面拉",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "锤式弯举",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "拉"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "罗马尼亚硬拉",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "腿举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "腿弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "腿"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "坐姿划船",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "引体向上",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "上肢A"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "罗马尼亚硬拉",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "腿举",
+            "reps" : 12,
+            "sets" : 4
+          },
+          {
+            "name" : "腿弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "下肢A"
+      }
+    ],
+    "6" : [
+      {
+        "items" : [
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "上斜哑铃卧推",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃侧平举",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "仰卧臂屈伸",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "推"
+      },
+      {
+        "items" : [
+          {
+            "name" : "硬拉",
+            "reps" : 6,
+            "sets" : 4
+          },
+          {
+            "name" : "引体向上",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "面拉",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "锤式弯举",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "拉"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "罗马尼亚硬拉",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "腿举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "腿弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "腿"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "坐姿划船",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "引体向上",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "上肢A"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "罗马尼亚硬拉",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "腿举",
+            "reps" : 12,
+            "sets" : 4
+          },
+          {
+            "name" : "腿弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "下肢A"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 2
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 2
+          }
+        ],
+        "name" : "全身"
+      }
+    ],
+    "7" : [
+      {
+        "items" : [
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "上斜哑铃卧推",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃侧平举",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "仰卧臂屈伸",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "推"
+      },
+      {
+        "items" : [
+          {
+            "name" : "硬拉",
+            "reps" : 6,
+            "sets" : 4
+          },
+          {
+            "name" : "引体向上",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "面拉",
+            "reps" : 15,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "锤式弯举",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "拉"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "罗马尼亚硬拉",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "腿举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "腿弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "腿"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "坐姿划船",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "引体向上",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 3
+          }
+        ],
+        "name" : "上肢A"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 4
+          },
+          {
+            "name" : "罗马尼亚硬拉",
+            "reps" : 10,
+            "sets" : 4
+          },
+          {
+            "name" : "腿举",
+            "reps" : 12,
+            "sets" : 4
+          },
+          {
+            "name" : "腿弯举",
+            "reps" : 12,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿提踵",
+            "reps" : 15,
+            "sets" : 4
+          }
+        ],
+        "name" : "下肢A"
+      },
+      {
+        "items" : [
+          {
+            "name" : "杠铃深蹲",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃卧推",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "杠铃划船",
+            "reps" : 8,
+            "sets" : 3
+          },
+          {
+            "name" : "站姿推举",
+            "reps" : 10,
+            "sets" : 3
+          },
+          {
+            "name" : "哑铃弯举",
+            "reps" : 12,
+            "sets" : 2
+          },
+          {
+            "name" : "绳索下压",
+            "reps" : 12,
+            "sets" : 2
+          }
+        ],
+        "name" : "全身"
+      }
+    ]
+  },
+  "workoutSpec" : [
+    {
+      "daysAgo" : 3,
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "sets" : [
+            {
+              "reps" : 8,
+              "weightKG" : 80
+            },
+            {
+              "reps" : 8,
+              "weightKG" : 80
+            }
+          ]
+        },
+        {
+          "name" : "站姿推举",
+          "sets" : [
+            {
+              "reps" : 8,
+              "weightKG" : 40
+            }
+          ]
+        },
+        {
+          "name" : "绳索下压",
+          "sets" : [
+            {
+              "reps" : 12,
+              "weightKG" : 25
+            }
+          ]
+        }
+      ],
+      "split" : "推"
+    },
+    {
+      "daysAgo" : 10,
+      "exercises" : [
+        {
+          "name" : "杠铃深蹲",
+          "sets" : [
+            {
+              "reps" : 8,
+              "weightKG" : 110
+            }
+          ]
+        },
+        {
+          "name" : "罗马尼亚硬拉",
+          "sets" : [
+            {
+              "reps" : 10,
+              "weightKG" : 90
+            }
+          ]
+        }
+      ],
+      "split" : "腿"
+    },
+    {
+      "daysAgo" : 45,
+      "exercises" : [
+        {
+          "name" : "硬拉",
+          "sets" : [
+            {
+              "reps" : 5,
+              "weightKG" : 150
+            }
+          ]
+        },
+        {
+          "name" : "高位下拉",
+          "sets" : [
+            {
+              "reps" : 10,
+              "weightKG" : 55
+            }
+          ]
+        }
+      ],
+      "split" : "拉"
+    },
+    {
+      "daysAgo" : 365,
+      "exercises" : [
+        {
+          "name" : "杠铃卧推",
+          "sets" : [
+            {
+              "reps" : 3,
+              "weightKG" : 120
+            }
+          ]
+        }
+      ],
+      "split" : "推"
+    }
+  ],
+  "workoutText" : {
+    "160.0" : "杠铃卧推 4x8 67.5kg · 40千卡\n引体向上 3x8 自重 · 25千卡\n哑铃侧平举 3x15 10.0kg · 23千卡\n杠铃深蹲 5x5 100.0kg · 49千卡\n站姿提踵 4x15 80.0kg · 31千卡\n预计消耗 168 千卡（身高 160cm 行程修正 ×0.96）",
+    "175.0" : "杠铃卧推 4x8 67.5kg · 42千卡\n引体向上 3x8 自重 · 26千卡\n哑铃侧平举 3x15 10.0kg · 24千卡\n杠铃深蹲 5x5 100.0kg · 52千卡\n站姿提踵 4x15 80.0kg · 32千卡\n预计消耗 176 千卡",
+    "182.5" : "杠铃卧推 4x8 67.5kg · 43千卡\n引体向上 3x8 自重 · 27千卡\n哑铃侧平举 3x15 10.0kg · 24千卡\n杠铃深蹲 5x5 100.0kg · 54千卡\n站姿提踵 4x15 80.0kg · 32千卡\n预计消耗 180 千卡（身高 182cm 行程修正 ×1.02）"
+  }
+}

@@ -1,0 +1,422 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0016DC784D710BDD3FD71AF2 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74298E0A8AA2A16DFC27FAF /* Models.swift */; };
+		1C93291C2E37E0C1D597AF60 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0458861144B96E2B1CDCAF /* Engine.swift */; };
+		257BAADC1C3EEB1345CB44C0 /* FitTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FEAD6588A5D5A867DEF4E2 /* FitTrackApp.swift */; };
+		415B65415C25FC86DFE315B2 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D193D1B397B4A7657FBDFBD1 /* Importer.swift */; };
+		4A46BF0B5B3AC02AA84A73A6 /* FitTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FEAD6588A5D5A867DEF4E2 /* FitTrackApp.swift */; };
+		51B1D6E4FE27239D9E4D1AFF /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCCEA737CBBB74F53CA5CB8 /* AppStore.swift */; };
+		6D970A69E783F15F39B4868B /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0458861144B96E2B1CDCAF /* Engine.swift */; };
+		6F8AD19B852A0BCF66ECDFE9 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74298E0A8AA2A16DFC27FAF /* Models.swift */; };
+		7A6296E7243DFA47AB5D6DD9 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D415014C2958613D2BE6551B /* AIService.swift */; };
+		889499E558D9E3D27675F5C5 /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BC854E9D910E76D98CA58F8 /* Views.swift */; };
+		9D1702CD08816B262291828F /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D193D1B397B4A7657FBDFBD1 /* Importer.swift */; };
+		A1B7F30A5B182482527E0956 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D415014C2958613D2BE6551B /* AIService.swift */; };
+		A6A8308E90343D70C7287F2C /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BC854E9D910E76D98CA58F8 /* Views.swift */; };
+		AA0457C5C13147BD73E35155 /* RemindersSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030EF8E1821A65A1AE576128 /* RemindersSync.swift */; };
+		BE082B0E8BE2D67C93608FF6 /* RemindersSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030EF8E1821A65A1AE576128 /* RemindersSync.swift */; };
+		F9539F953DD3F2C35C3E8C9F /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCCEA737CBBB74F53CA5CB8 /* AppStore.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		030EF8E1821A65A1AE576128 /* RemindersSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersSync.swift; sourceTree = "<group>"; };
+		053108AC8BBB9B65EBA44741 /* FitTrack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0BC854E9D910E76D98CA58F8 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		1FCCEA737CBBB74F53CA5CB8 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		3C0458861144B96E2B1CDCAF /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
+		5847BB7E84E86C7779F38E57 /* FitTrack-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "FitTrack-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B4FEAD6588A5D5A867DEF4E2 /* FitTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackApp.swift; sourceTree = "<group>"; };
+		D193D1B397B4A7657FBDFBD1 /* Importer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importer.swift; sourceTree = "<group>"; };
+		D415014C2958613D2BE6551B /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
+		F74298E0A8AA2A16DFC27FAF /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		301EE577968C3139AEBF90AF = {
+			isa = PBXGroup;
+			children = (
+				41D7F61542D61F98C5550C59 /* Sources */,
+				AEA38702B705DAEA72C53EAD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		41D7F61542D61F98C5550C59 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				B32EDB85774B459B4517ED62 /* FitTrack */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		AEA38702B705DAEA72C53EAD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5847BB7E84E86C7779F38E57 /* FitTrack-iOS.app */,
+				053108AC8BBB9B65EBA44741 /* FitTrack.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B32EDB85774B459B4517ED62 /* FitTrack */ = {
+			isa = PBXGroup;
+			children = (
+				D415014C2958613D2BE6551B /* AIService.swift */,
+				1FCCEA737CBBB74F53CA5CB8 /* AppStore.swift */,
+				3C0458861144B96E2B1CDCAF /* Engine.swift */,
+				B4FEAD6588A5D5A867DEF4E2 /* FitTrackApp.swift */,
+				D193D1B397B4A7657FBDFBD1 /* Importer.swift */,
+				F74298E0A8AA2A16DFC27FAF /* Models.swift */,
+				030EF8E1821A65A1AE576128 /* RemindersSync.swift */,
+				0BC854E9D910E76D98CA58F8 /* Views.swift */,
+			);
+			path = FitTrack;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		486994C75D6B96CC8CA3182A /* FitTrack-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2EABB57EFC7260F8F34E7941 /* Build configuration list for PBXNativeTarget "FitTrack-iOS" */;
+			buildPhases = (
+				F2236ADAF7113F1887EADBB3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FitTrack-iOS";
+			packageProductDependencies = (
+			);
+			productName = "FitTrack-iOS";
+			productReference = 5847BB7E84E86C7779F38E57 /* FitTrack-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D255A6C7D5D446F750DA7FED /* FitTrack */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3B4A6B7657E5CB7FD38F812 /* Build configuration list for PBXNativeTarget "FitTrack" */;
+			buildPhases = (
+				522D69FECDF3C6955ABB05AD /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FitTrack;
+			packageProductDependencies = (
+			);
+			productName = FitTrack;
+			productReference = 053108AC8BBB9B65EBA44741 /* FitTrack.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		15D5670798217E89438AFDD1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					486994C75D6B96CC8CA3182A = {
+						ProvisioningStyle = Automatic;
+					};
+					D255A6C7D5D446F750DA7FED = {
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 2DE973B4615ED6F7AD148BC7 /* Build configuration list for PBXProject "FitTrack" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 301EE577968C3139AEBF90AF;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = AEA38702B705DAEA72C53EAD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D255A6C7D5D446F750DA7FED /* FitTrack */,
+				486994C75D6B96CC8CA3182A /* FitTrack-iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		522D69FECDF3C6955ABB05AD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A6296E7243DFA47AB5D6DD9 /* AIService.swift in Sources */,
+				F9539F953DD3F2C35C3E8C9F /* AppStore.swift in Sources */,
+				6D970A69E783F15F39B4868B /* Engine.swift in Sources */,
+				257BAADC1C3EEB1345CB44C0 /* FitTrackApp.swift in Sources */,
+				415B65415C25FC86DFE315B2 /* Importer.swift in Sources */,
+				0016DC784D710BDD3FD71AF2 /* Models.swift in Sources */,
+				BE082B0E8BE2D67C93608FF6 /* RemindersSync.swift in Sources */,
+				889499E558D9E3D27675F5C5 /* Views.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2236ADAF7113F1887EADBB3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B7F30A5B182482527E0956 /* AIService.swift in Sources */,
+				51B1D6E4FE27239D9E4D1AFF /* AppStore.swift in Sources */,
+				1C93291C2E37E0C1D597AF60 /* Engine.swift in Sources */,
+				4A46BF0B5B3AC02AA84A73A6 /* FitTrackApp.swift in Sources */,
+				9D1702CD08816B262291828F /* Importer.swift in Sources */,
+				6F8AD19B852A0BCF66ECDFE9 /* Models.swift in Sources */,
+				AA0457C5C13147BD73E35155 /* RemindersSync.swift in Sources */,
+				A6A8308E90343D70C7287F2C /* Views.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		34ACA5F35B812A7DA184ABF5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "用于将你的训练计划同步到「提醒事项」";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.frost.fittrack;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		62185B7035B4AEF56BEB30F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Entitlements/iOS.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "读取你的健康数据以追踪体重与身体指标";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "将你的体重等身体指标写入健康";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "用于将你的训练计划同步到「提醒事项」";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.frost.fittrack.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C3C7D85B3B9A0EBDFA76DB0B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C61039398119BC5109C7E733 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		E5967CF56F8F3C8078B379C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "用于将你的训练计划同步到「提醒事项」";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.frost.fittrack;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		FF20C7B6F44887601BCD6CA6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Entitlements/iOS.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "读取你的健康数据以追踪体重与身体指标";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "将你的体重等身体指标写入健康";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "用于将你的训练计划同步到「提醒事项」";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.frost.fittrack.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2DE973B4615ED6F7AD148BC7 /* Build configuration list for PBXProject "FitTrack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3C7D85B3B9A0EBDFA76DB0B /* Debug */,
+				C61039398119BC5109C7E733 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2EABB57EFC7260F8F34E7941 /* Build configuration list for PBXNativeTarget "FitTrack-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				62185B7035B4AEF56BEB30F0 /* Debug */,
+				FF20C7B6F44887601BCD6CA6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D3B4A6B7657E5CB7FD38F812 /* Build configuration list for PBXNativeTarget "FitTrack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E5967CF56F8F3C8078B379C1 /* Debug */,
+				34ACA5F35B812A7DA184ABF5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 15D5670798217E89438AFDD1 /* Project object */;
+}

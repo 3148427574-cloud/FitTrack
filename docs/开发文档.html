@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>开发文档.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+<h1 id="fittrack">FitTrack 开发文档</h1>
+<blockquote>
+<p>本文档是 FitTrack 的常驻技术文档，随代码演进更新。定位、快速上手见根目录 <code>CLAUDE.md</code>；某次会话的快照总结见 <code>docs/2026-09-16-开发总结.md</code>。</p>
+</blockquote>
+<h2 id="1">1. 项目定位</h2>
+<p>个人健身与体重管理应用（SwiftUI，macOS + iOS 双 target）。核心能力：</p>
+<ul>
+<li>根据<strong>训练历史 + 身体数据变化</strong>生成每日训练计划（AI 辅助，失败回退固定模板）</li>
+<li>增肌/减脂/维持三种目标的饮食计划与食物库</li>
+<li>身体指标记录（体重/体脂/围度）与趋势图</li>
+<li>训练计划双向同步 Apple「提醒事项」</li>
+<li>历史数据导入（JSON / CSV）</li>
+<li>内置 AI 聊天助手（可读取用户真实数据）</li>
+</ul>
+<h2 id="2">2. 技术栈与构建</h2>
+<ul>
+<li>SwiftUI + AppKit（macOS 仅入口层）；deployment <strong>macOS 14 / iOS 17</strong></li>
+<li>存储：<strong>JSON 文件</strong>（非 SwiftData / Core Data）</li>
+<li>AI：<strong>DeepSeek</strong> <code>chat/completions</code>（OpenAI 兼容），原始 URLSession，key 存 Keychain</li>
+<li>提醒：EventKit（<code>EKReminder</code>）；HealthKit 仅 iOS 预留</li>
+<li>构建：xcodegen 生成工程 + xcodebuild（<code>Package.swift</code> 是早期 SPM 遗留，<strong>已弃用</strong>）</li>
+</ul>
+<pre><code class="language-bash">cd /Users/frost/FitTrack
+xcodegen generate
+xcodebuild -project FitTrack.xcodeproj -scheme FitTrack -configuration Debug build
+# 产物拷到 /Applications/FitTrack.app 后 open
+</div></code></pre>
+<h2 id="3">3. 目录与模块职责</h2>
+<p><code>Sources/FitTrack/</code> 下 8 个文件，单一 target 编译 macOS/iOS 两个平台：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Models.swift</code></td>
+<td>全部数据模型（Codable）+ 种子动作库/食物库</td>
+</tr>
+<tr>
+<td><code>AppStore.swift</code></td>
+<td>全局 <code>ObservableObject</code> 仓库：加载/保存 JSON、查询辅助、聊天历史、删除操作</td>
+</tr>
+<tr>
+<td><code>Engine.swift</code></td>
+<td>纯算法：TDEE、饮食计划、卡路里估算、训练计划生成</td>
+</tr>
+<tr>
+<td><code>AIService.swift</code></td>
+<td>DeepSeek API 封装 + Keychain key 管理 + 上下文构建 + 计划解析</td>
+</tr>
+<tr>
+<td><code>RemindersSync.swift</code></td>
+<td>EventKit 双向同步 + <code>.ics</code> 导出</td>
+</tr>
+<tr>
+<td><code>Importer.swift</code></td>
+<td>JSON/CSV 导入 + CSV 解析 + 日期解析</td>
+</tr>
+<tr>
+<td><code>FitTrackApp.swift</code></td>
+<td><code>@main</code> 入口 + macOS <code>AppDelegate</code></td>
+</tr>
+<tr>
+<td><code>Views.swift</code></td>
+<td>全部 SwiftUI 视图（约 800+ 行）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4">4. 数据模型</h2>
+<p>根模型 <code>AppData</code>（<code>Models.swift:134</code>）：</p>
+<pre><code class="language-swift">struct AppData: Codable {
+    var profile: UserProfile           // 性别/年龄/身高/活动系数/每周训练天数
+    var goal: Goal                     // 增肌/减脂/维持 + 目标体重 + 周增减
+    var workouts: [WorkoutSession]     // 已完成的训练历史
+    var plannedWorkouts: [PlannedWorkout]  // 生成的训练计划
+    var bodyMetrics: [BodyMetric]      // 体重/体脂/围度时间序列
+    var foods: [Food]                  // 食物库（每 100g 营养）
+    var exercises: [ExerciseDef]       // 动作库（名称/肌群/器械/是否自重）
+    var dietLogs: [DietLog]            // 饮食记录
+}
+</div></code></pre>
+<p>关键结构字段：</p>
+<ul>
+<li><code>PlannedWorkout</code>：<code>date</code>、<code>splitName</code>、<code>exercises: [PlannedExercise]</code>、<code>status: WorkoutStatus</code>（planned/completed/skipped）、<code>note: String?</code>、<code>reminderID: String?</code></li>
+<li><code>PlannedExercise</code>：<code>name</code>、<code>targetSets</code>、<code>targetReps</code>、<code>targetWeightKG</code></li>
+<li><code>WorkoutSession</code>：<code>date</code>、<code>splitName</code>、<code>exercises: [ExerciseEntry]</code>、<code>durationMin</code>、<code>notes</code></li>
+<li><code>ExerciseEntry</code> / <code>SetEntry</code>：<code>name</code> + <code>sets: [SetEntry]</code>，每组 <code>reps</code> + <code>weightKG</code>（+ 可选 <code>rpe</code>）</li>
+<li><code>BodyMetric</code>：<code>date</code>、<code>weightKG</code> 必填，<code>bodyFatPct/muscleMassKG/waistCM/chestCM/armCM/thighCM</code> 可选</li>
+<li><code>ChatMessage</code>：<code>role</code>（"user"/"assistant"）+ <code>content</code>，独立于 <code>AppData</code>，单独持久化</li>
+</ul>
+<h2 id="5">5. 持久化与数据流</h2>
+<p>数据文件（<code>AppStore.defaultFileURL</code>，<code>AppStore.swift:67</code>）：</p>
+<pre class="hljs"><code><div>~/Library/Application Support/FitTrack/fittrack.json   # 主数据 AppData
+~/Library/Application Support/FitTrack/chat.json        # AI 聊天历史 [ChatMessage]
+</div></code></pre>
+<ul>
+<li>编码：<code>ISO8601</code> 日期策略 + <code>prettyPrinted</code> + <code>sortedKeys</code>；写入用 <code>.atomic</code></li>
+<li><code>AppStore</code> 是唯一写入口；<code>@Published data</code> 与 <code>@Published chatMessages</code> 驱动 UI</li>
+<li>首次启动若 <code>exercises</code>/<code>foods</code> 为空，用 <code>SeedData</code> 填充（<code>AppStore.swift:21</code>）</li>
+<li>聊天历史上限 40 条，<code>trimChat(to:)</code> 保留最近 40</li>
+</ul>
+<h2 id="6">6. 核心机制</h2>
+<h3 id="61-ai-aiserviceswift">6.1 AI 计划生成 + 聊天（<code>AIService.swift</code>）</h3>
+<ul>
+<li>端点 <code>https://api.deepseek.com/chat/completions</code>，模型 <code>deepseek-chat</code></li>
+<li>key 存 Keychain（service <code>com.frost.fittrack.ai</code>，account <code>deepseek-api-key</code>），UserDefaults 兜底（key <code>ai.deepseekKey</code>）</li>
+<li><code>contextString(_:)</code> 组装上下文：性别/年龄/身高/体重 + 目标 + 动作库 + 身体趋势 + 近 20 次训练</li>
+<li>计划生成：<code>generatePlan</code>（<code>temperature=0.3</code>，<code>maxTokens=4000</code>）→ system prompt 要求输出单 JSON → <code>parsePlan</code> 容错提取 <code>{...}</code> 后解码</li>
+<li><strong>回退链</strong>：<code>generatePlanWithFallback</code> —— 无 key 或失败时走 <code>TrainingPlanner.generatePlan</code> 固定模板</li>
+<li>聊天：<code>chat(history:context:)</code>（<code>maxTokens=8000</code>），system 含用户真实数据，角色顺序保证 user 在前</li>
+</ul>
+<h3 id="62-engineswift117">6.2 训练计划生成与渐进超负荷（<code>Engine.swift:117</code>）</h3>
+<ul>
+<li>拆分模板按每周训练天数选：≤2 天全身；3 天推/拉/腿；4 天上下肢 A/B；5 天混合</li>
+<li>配重逻辑：<code>estimate1RM</code>（Epley：<code>w × (1 + reps/30)</code>，取历史组最大）→ 有历史用 <code>1RM × 0.75</code>，无历史用 <code>CalorieEstimator.defaultWeight</code>（按体重的比例表）→ 统一四舍五入到 2.5kg 倍数</li>
+</ul>
+<h3 id="63-engineswift70">6.3 卡路里估算（<code>Engine.swift:70</code>）</h3>
+<p>公式：<code>卡路里 = MET × 体重(kg) × 时长(小时)</code>；每组按 1.5 分钟（含休息）。</p>
+<ul>
+<li>MET：复合动作 6.0，自重动作 5.0，孤立动作 4.5（由动作名匹配集合判定）</li>
+<li><code>defaultWeight</code>：按动作名 → 体重比例（深蹲 0.5、硬拉 0.6、卧推 0.4…），自重动作返回 0</li>
+</ul>
+<h3 id="64-reminderssyncswift">6.4 提醒双向同步（<code>RemindersSync.swift</code>）</h3>
+<p>关联通过 <code>PlannedWorkout.reminderID == EKReminder.calendarItemIdentifier</code> 建立：</p>
+<ul>
+<li><strong>App → 提醒</strong>：<code>syncToReminders</code> 创建 <code>EKReminder</code>（标题「🏋️ 训练：拆分名」、备注列动作×组×次×重量、dueDate 为当天），回写 <code>[计划ID: identifier]</code></li>
+<li><strong>App 内点完成/跳过 → 提醒</strong>：<code>markCompleted</code>（设 <code>isCompleted=true</code>）/ <code>markDeleted</code>（删除提醒）</li>
+<li><strong>提醒内点完成 → App</strong>：<code>fetchStatus(ids:)</code> 拉取完成状态；<code>TrainingView</code> 监听 <code>EKEventStoreChanged</code> 自动拉回，另有「刷新状态」按钮兜底</li>
+<li><strong>无签名兜底</strong>：<code>ICSExporter.ics(for:)</code> 生成 <code>.ics</code> 文本，可导入 Apple 日历</li>
+</ul>
+<h3 id="65-importerswift">6.5 导入（<code>Importer.swift</code>）</h3>
+<ul>
+<li><strong>JSON</strong>：契约 <code>ImportSchema</code>（<code>version</code>/<code>source</code>/<code>workouts</code>/<code>bodyMetrics</code>），日期多格式兼容（ISO8601 / <code>yyyy-MM-dd</code> / <code>yyyy/MM/dd</code> / 带时间）</li>
+<li><strong>CSV</strong>：<code>CSVParser</code> 手写解析（支持引号转义、<code>\t</code>/<code>;</code>/<code>,</code> 分隔符）；按表头自动识别两类：</li>
+<li>身体数据：含 <code>weight_kg</code>/<code>weightkg</code>/<code>体重</code> 列</li>
+<li>训练记录：含 <code>exercise</code>/<code>动作</code> 列（按「日期+动作」聚合多组）</li>
+</ul>
+<h3 id="66-engineswift26">6.6 饮食计划（<code>Engine.swift:26</code>）</h3>
+<ul>
+<li>TDEE：Mifflin-St Jeor BMR × 活动系数（<code>Engine.swift:5</code>）</li>
+<li><code>DietPlanner.targets</code>：增肌 TDEE+400 / 减脂 TDEE−400 / 维持 TDEE；蛋白质增肌 2.0g/kg、维持 1.6g/kg，脂肪 0.9g/kg，剩余热量给碳水</li>
+<li><code>sampleMealPlan</code>：按 4 餐从食物库简单搭配蛋白/碳水/脂肪来源</li>
+</ul>
+<h2 id="7-viewsswift">7. 视图层（<code>Views.swift</code>）</h2>
+<p><code>enum Section</code> 七页：概览 / 训练 / 饮食 / 身体 / AI 助手 / 导入导出 / 设置。</p>
+<ul>
+<li><code>DashboardView</code>：目标进度 + <code>TodayPlanView</code>（AI 生成计划、异步 loading、结果提示）</li>
+<li><code>TrainingView</code>：同步提醒、记录训练、完成/跳过（双向）、清空全部/逐条删除（均二次确认）</li>
+<li><code>BodyView</code>：体重趋势图 + 录入</li>
+<li><code>ImportView</code>：JSON/CSV 导入 + JSON 导出</li>
+<li><code>AIChatView</code>：聊天 + 历史持久化 + 清空（带确认）</li>
+<li><code>ProfileView</code>：设置（含 API key 管理）</li>
+</ul>
+<h2 id="8">8. 关键约定与坑</h2>
+<ol>
+<li><strong>给任何 Codable 结构体新增字段必须用 optional</strong>（或提供默认值），否则旧 JSON 整体解码失败、数据全丢。这是本项目最易踩的坑。</li>
+<li>构建/约定的权威入口是根目录 <code>CLAUDE.md</code>，不要再用 <code>Package.swift</code>（SPM 遗留）。</li>
+<li>macOS bundle id <code>com.frost.fittrack</code>（ad-hoc 签名 <code>CODE_SIGN_IDENTITY "-"</code>）；iOS <code>com.frost.fittrack.ios</code>（HealthKit entitlement）。</li>
+<li>日期格式统一 <code>ISO8601</code> 编解码；<code>DateFormatter</code> 需显式设 <code>en_US_POSIX</code> locale。</li>
+<li>AI 计划里的自重动作 <code>targetWeightKG</code> 应为 0，<code>parsePlan</code> 会对「权重≤0 且非自重」的动作兜底补默认重量。</li>
+<li>EventKit 提醒操作是 <code>@MainActor</code>（<code>RemindersSync</code> 标注），UI 调用需在 <code>Task { @MainActor in }</code> 内。</li>
+</ol>
+<h2 id="9">9. 当前状态与下一步</h2>
+<p>已实现：概览/训练/饮食/身体/导入导出/AI 助手/设置；AI 生成计划 + 聊天（历史持久化）；计划含重量 + 卡路里；提醒双向完成同步；历史训练一键/逐条删除。</p>
+<p>下一步候选：</p>
+<ul>
+<li>iOS target 落地 + HealthKit 读体重（模拟器 runtime 尚未下载）</li>
+<li>提醒事项备注里带重量 + 卡路里（当前备注仅重量）</li>
+<li>聊天历史纳入 JSON 导出/备份</li>
+</ul>
+</body>
+</html>

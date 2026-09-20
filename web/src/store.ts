@@ -1,0 +1,651 @@
+// 对应 Mac 版 Sources/FitTrack/AppStore.swift。
+// 两个文件（fittrack.json / chat.json）换成两个 localStorage 键 —— 存的是同一份 JSON 结构，
+// 所以 Mac 版导出的文件能原样导入，这里导出的也能被 Mac 版读回。
+//
+// 与 Mac 版的差异：API Key 也睡在 localStorage（浏览器里没有 Keychain 的等价物）。
+
+import {
+  BIG_THREE_LABELS,
+  BIG_THREE_LIFTS,
+  StrengthModel,
+  bigThreeSet,
+  bigThreeValue,
+  fmt0,
+  fmt1,
+  fmt2,
+  type BigThreeLift,
+} from './engine'
+import {
+  GOAL_LABELS,
+  SEED_EXERCISES,
+  SEED_FOODS,
+  decodeJSON,
+  emptyAppData,
+  encodeJSON,
+  newID,
+  type AIUpdatePayload,
+  type AppData,
+  type BigThreeMax,
+  type BodyMetric,
+  type ChatMessage,
+  type DietLog,
+  type ExerciseEntry,
+  type Goal,
+  type GoalType,
+  type PlannedWorkout,
+  type SetEntry,
+  type UserProfile,
+  type WorkoutSession,
+  type WorkoutStatus,
+} from './models'
+
+const DATA_KEY = 'fittrack.data'
+const CHAT_KEY = 'fittrack.chat'
+const API_KEY_KEY = 'fittrack.apiKey'
+const MAX_CHAT = 40 // 与 Mac 版 Views.swift 的 maxHistory 一致
+
+// MARK: - localStorage 读写
+
+function read(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function write(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    // 配额满 / 隐私模式：内存里的数据仍然有效，不因为写不进去就崩
+  }
+}
+
+/**
+ * 把解析出来的原始对象补成完整 AppData。
+ *
+ * Mac 版用 Codable 直接解，缺一个非 optional 字段就整体解码失败 → 退回空数据（等于丢数据）。
+ * 网页版这里刻意更稳：缺什么用默认值补什么，坏字段不牵连整份备份。
+ */
+function normalizeData(raw: unknown): AppData {
+  const base = emptyAppData()
+  if (raw == null || typeof raw !== 'object') return base
+  const r = raw as Record<string, any>
+  const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : [])
+  return {
+    profile: { ...base.profile, ...(r.profile ?? {}) },
+    goal: { ...base.goal, ...(r.goal ?? {}) },
+    workouts: arr<WorkoutSession>(r.workouts),
+    plannedWorkouts: arr<PlannedWorkout>(r.plannedWorkouts),
+    bodyMetrics: arr<BodyMetric>(r.bodyMetrics),
+    foods: arr(r.foods),
+    exercises: arr(r.exercises),
+    dietLogs: arr(r.dietLogs),
+    bigThree: r.bigThree ?? null,
+    coachNotes: r.coachNotes ?? null,
+  }
+}
+
+// MARK: - 范围夹紧（对应 Swift 的 Comparable.clamped(to:)）
+
+function clamp(v: number, lo: number, hi: number): number {
+  return Math.min(Math.max(v, lo), hi)
+}
+
+/** Swift 的 `(x * 10).rounded() / 10`：就近远离零，保留一位小数 */
+function round1(v: number): number {
+  return Math.round(v * 10) / 10
+}
+
+function round2(v: number): number {
+  return Math.round(v * 100) / 100
+}
+
+/** Swift 的 plannedChanges 里那个 fmt：整数不带小数位，否则一位 */
+function fmtNum(v: number): string {
+  return Number.isInteger(v) ? fmt0(v) : fmt1(v)
+}
+
+// MARK: - 仓库
+
+class AppStore {
+  data: AppData
+  chatMessages: ChatMessage[]
+  apiKey: string
+
+  private listeners = new Set<() => void>()
+
+  constructor() {
+    const rawData = read(DATA_KEY)
+    const parsed = rawData == null ? null : safeParse(rawData)
+    const loaded = parsed == null ? emptyAppData() : normalizeData(parsed)
+    // 首次运行 / 备份里没有动作库食物库时补种子，与 Mac 版 init 一致
+    if (loaded.exercises.length === 0) loaded.exercises = SEED_EXERCISES
+    if (loaded.foods.length === 0) loaded.foods = SEED_FOODS
+    this.data = loaded
+
+    const rawChat = read(CHAT_KEY)
+    const parsedChat = rawChat == null ? null : safeParse(rawChat)
+    this.chatMessages = Array.isArray(parsedChat) ? (parsedChat as ChatMessage[]) : []
+    this.apiKey = read(API_KEY_KEY) ?? ''
+  }
+
+  // MARK: 订阅（给 React 的 useSyncExternalStore 用）
+  //
+  // 快照必须是稳定引用，所以每次改动都换新对象（不可变更新），不原地改。
+
+  subscribe = (fn: () => void): (() => void) => {
+    this.listeners.add(fn)
+    return () => this.listeners.delete(fn)
+  }
+
+  getData = (): AppData => this.data
+  getChat = (): ChatMessage[] => this.chatMessages
+
+  private emit(): void {
+    for (const fn of this.listeners) fn()
+  }
+
+  // MARK: 持久化
+
+  private save(): void {
+    write(DATA_KEY, encodeJSON(this.data))
+  }
+
+  private saveChat(): void {
+    write(CHAT_KEY, encodeJSON(this.chatMessages))
+  }
+
+  /** 数据改动统一走这里：换引用 → 通知 → 落盘 */
+  private commit(next: AppData): void {
+    this.data = next
+    this.emit()
+    this.save()
+  }
+
+  setApiKey(key: string): void {
+    this.apiKey = key
+    write(API_KEY_KEY, key)
+    this.emit()
+  }
+
+  // MARK: 聊天
+
+  appendChat(m: ChatMessage): void {
+    this.chatMessages = [...this.chatMessages, m]
+    this.emit()
+    this.saveChat()
+  }
+
+  replaceChat(messages: ChatMessage[]): void {
+    this.chatMessages = messages
+    this.emit()
+    this.saveChat()
+  }
+
+  trimChat(max: number): void {
+    if (this.chatMessages.length <= max) return
+    this.chatMessages = this.chatMessages.slice(-max)
+    this.emit()
+    this.saveChat()
+  }
+
+  clearChat(): void {
+    if (this.chatMessages.length === 0) return
+    this.chatMessages = []
+    this.emit()
+    this.saveChat()
+  }
+
+  /** 合并导入的聊天记录：按 id 去重后追加，返回新增条数 */
+  importChat(incoming: ChatMessage[]): number {
+    const existing = new Set(this.chatMessages.map((m) => m.id))
+    const fresh = incoming.filter((m) => !existing.has(m.id))
+    if (fresh.length === 0) return 0
+    this.chatMessages = [...this.chatMessages, ...fresh]
+    this.emit()
+    this.saveChat()
+    return fresh.length
+  }
+
+  // MARK: AI 提议
+
+  /** 应用挂在某条聊天消息上的待确认变更 */
+  applyProposal(messageID: string): string[] {
+    const idx = this.chatMessages.findIndex((m) => m.id === messageID)
+    if (idx < 0) return []
+    const json = this.chatMessages[idx].proposal
+    if (json == null) return []
+    const payload = AppStore.decodePayload(json)
+    if (payload == null) return []
+    const changes = this.applyUpdate(payload)
+    const next = [...this.chatMessages]
+    next[idx] = { ...next[idx], proposalResult: changes, proposalStatus: 'applied' }
+    this.chatMessages = next
+    this.emit()
+    this.saveChat()
+    return changes
+  }
+
+  setProposalStatus(messageID: string, status: string): void {
+    const idx = this.chatMessages.findIndex((m) => m.id === messageID)
+    if (idx < 0) return
+    if ((this.chatMessages[idx].proposalStatus ?? '') === status) return
+    const next = [...this.chatMessages]
+    next[idx] = { ...next[idx], proposalStatus: status }
+    this.chatMessages = next
+    this.emit()
+    this.saveChat()
+  }
+
+  applyUpdate(payload: AIUpdatePayload): string[] {
+    const { changes, updated } = AppStore.plannedChanges(payload, this.data)
+    if (changes.length > 0) this.commit(updated)
+    return changes
+  }
+
+  /**
+   * 纯函数版：逐字段白名单校验 + 范围夹紧，返回变更摘要与改好的数据副本。
+   * 聊天里的确认卡片用它做预览，点「应用」时走同一个函数，保证预览与落地一致。
+   */
+  static plannedChanges(
+    payload: AIUpdatePayload,
+    data: AppData,
+  ): { changes: string[]; updated: AppData } {
+    const out: AppData = {
+      ...data,
+      profile: { ...data.profile },
+      goal: { ...data.goal },
+    }
+    const changes: string[] = []
+
+    const p = payload.profile
+    if (p != null) {
+      if (p.sex != null) {
+        const v = normalizeSex(p.sex)
+        if (v != null && v !== out.profile.sex) {
+          changes.push(`性别：${sexLabel(out.profile.sex)} → ${sexLabel(v)}`)
+          out.profile.sex = v
+        }
+      }
+      if (p.age != null) {
+        const v = clamp(p.age, 10, 90)
+        if (v !== out.profile.age) {
+          changes.push(`年龄：${out.profile.age} → ${v}`)
+          out.profile.age = v
+        }
+      }
+      if (p.heightCM != null) {
+        const v = round1(clamp(p.heightCM, 120, 250))
+        if (Math.abs(v - out.profile.heightCM) > 0.05) {
+          changes.push(`身高：${fmtNum(out.profile.heightCM)}cm → ${fmtNum(v)}cm`)
+          out.profile.heightCM = v
+        }
+      }
+      if (p.activityLevel != null) {
+        const v = snapActivityLevel(p.activityLevel)
+        if (v != null && Math.abs(v - out.profile.activityLevel) > 0.001) {
+          changes.push(`活动系数：${fmtNum(out.profile.activityLevel)} → ${fmtNum(v)}`)
+          out.profile.activityLevel = v
+        }
+      }
+      if (p.trainingDaysPerWeek != null) {
+        const v = clamp(p.trainingDaysPerWeek, 1, 7)
+        if (v !== out.profile.trainingDaysPerWeek) {
+          changes.push(`每周训练天数：${out.profile.trainingDaysPerWeek} → ${v}`)
+          out.profile.trainingDaysPerWeek = v
+        }
+      }
+    }
+
+    const g = payload.goal
+    if (g != null) {
+      if (g.type != null) {
+        const v = normalizeGoalType(g.type)
+        if (v != null && v !== out.goal.type) {
+          changes.push(`目标类型：${GOAL_LABELS[out.goal.type]} → ${GOAL_LABELS[v]}`)
+          out.goal.type = v
+        }
+      }
+      if (g.targetWeightKG != null) {
+        const v = round1(clamp(g.targetWeightKG, 30, 200))
+        if (Math.abs(v - out.goal.targetWeightKG) > 0.05) {
+          changes.push(
+            `目标体重：${fmtNum(out.goal.targetWeightKG)}kg → ${fmtNum(v)}kg`,
+          )
+          out.goal.targetWeightKG = v
+        }
+      }
+      if (g.targetBodyFatPct != null) {
+        const v = round1(clamp(g.targetBodyFatPct, 3, 60))
+        const old = out.goal.targetBodyFatPct
+        if (Math.abs(v - (old ?? -1)) > 0.05) {
+          const oldLabel = old == null ? '未设置' : `${fmtNum(old)}%`
+          changes.push(`目标体脂：${oldLabel} → ${fmtNum(v)}%`)
+          out.goal.targetBodyFatPct = v
+        }
+      }
+      if (g.weeklyTargetDeltaKG != null) {
+        const v = round2(clamp(g.weeklyTargetDeltaKG, 0, 1))
+        if (Math.abs(v - out.goal.weeklyTargetDeltaKG) > 0.005) {
+          changes.push(
+            `每周增减：${fmt2(out.goal.weeklyTargetDeltaKG)}kg → ${fmt2(v)}kg`,
+          )
+          out.goal.weeklyTargetDeltaKG = v
+        }
+      }
+    }
+
+    const b = payload.bigThree
+    if (b != null) {
+      const m: BigThreeMax = { ...(out.bigThree ?? {}) }
+      const proposed: Record<BigThreeLift, number | null | undefined> = {
+        bench: b.benchKG,
+        squat: b.squatKG,
+        deadlift: b.deadliftKG,
+      }
+      for (const lift of BIG_THREE_LIFTS) {
+        const raw = proposed[lift]
+        if (raw == null) continue
+        const v = StrengthModel.roundToPlate(clamp(raw, 20, 400))
+        const old = bigThreeValue(m, lift)
+        if (old != null && Math.abs(old - v) < 0.01) continue
+        const oldLabel = old == null ? '未设置' : `${fmtNum(old)}kg`
+        changes.push(`${BIG_THREE_LABELS[lift]}极限：${oldLabel} → ${fmtNum(v)}kg`)
+        bigThreeSet(m, lift, v)
+      }
+      out.bigThree = m
+    }
+
+    const incoming = payload.notes
+    if (incoming != null) {
+      const notes = [...(out.coachNotes ?? [])]
+      for (const raw of incoming) {
+        const note = String(raw).trim().slice(0, 200)
+        if (note === '' || notes.includes(note) || notes.length >= 12) continue
+        notes.push(note)
+        changes.push(`新增训练偏好：${note}`)
+      }
+      if (notes.length > 0) out.coachNotes = notes
+    }
+
+    return { changes, updated: out }
+  }
+
+  /**
+   * 解析 AI 附的 `<<<UPDATES>>>` 载荷。
+   *
+   * 与 Mac 版的一处差异：Swift 是整体 `JSONDecoder().decode`，任一字段类型不对就整包丢掉；
+   * 这里逐字段降级 —— 坏字段忽略，其余照常应用（每个字段本来就要过夹紧，不会越界）。
+   */
+  static decodePayload(json: string): AIUpdatePayload | null {
+    const raw = safeParse(json)
+    if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return null
+    const r = raw as Record<string, any>
+    const out: AIUpdatePayload = {}
+    const num = (v: unknown): number | null => (typeof v === 'number' && isFinite(v) ? v : null)
+    const str = (v: unknown): string | null => (typeof v === 'string' ? v : null)
+
+    if (isObject(r.profile)) {
+      const x = r.profile
+      out.profile = {
+        sex: str(x.sex),
+        age: num(x.age),
+        heightCM: num(x.heightCM),
+        activityLevel: num(x.activityLevel),
+        trainingDaysPerWeek: num(x.trainingDaysPerWeek),
+      }
+    }
+    if (isObject(r.goal)) {
+      const x = r.goal
+      out.goal = {
+        type: str(x.type),
+        targetWeightKG: num(x.targetWeightKG),
+        targetBodyFatPct: num(x.targetBodyFatPct),
+        weeklyTargetDeltaKG: num(x.weeklyTargetDeltaKG),
+      }
+    }
+    if (isObject(r.bigThree)) {
+      const x = r.bigThree
+      out.bigThree = {
+        benchKG: num(x.benchKG),
+        squatKG: num(x.squatKG),
+        deadliftKG: num(x.deadliftKG),
+      }
+    }
+    if (Array.isArray(r.notes)) {
+      out.notes = r.notes.filter((n: unknown) => typeof n === 'string')
+    }
+    out.reason = str(r.reason)
+    return out
+  }
+
+  // MARK: - 数据改动（页面调用的入口）
+  //
+  // Mac 版的页面直接 `store.data.x.append(...)` 再 `store.save()`；网页版数据不可变，
+  // 页面统一走这些方法，由 commit 负责「换引用 → 通知 → 落盘」。
+
+  updateProfile(patch: Partial<UserProfile>): void {
+    this.commit({ ...this.data, profile: { ...this.data.profile, ...patch } })
+  }
+
+  updateGoal(patch: Partial<Goal>): void {
+    this.commit({ ...this.data, goal: { ...this.data.goal, ...patch } })
+  }
+
+  setBigThree(m: BigThreeMax | null): void {
+    this.commit({ ...this.data, bigThree: m })
+  }
+
+  /** 追加长期偏好；空白或已存在则不动，返回是否写入（对齐 Swift 的 addNote） */
+  addCoachNote(note: string): boolean {
+    const trimmed = note.trim()
+    if (trimmed === '') return false
+    const notes = this.data.coachNotes ?? []
+    if (notes.includes(trimmed)) return false
+    this.commit({ ...this.data, coachNotes: [...notes, trimmed] })
+    return true
+  }
+
+  removeCoachNote(index: number): void {
+    const notes = this.data.coachNotes
+    if (notes == null || index < 0 || index >= notes.length) return
+    const next = notes.filter((_, i) => i !== index)
+    this.commit({ ...this.data, coachNotes: next.length === 0 ? null : next })
+  }
+
+  addWorkout(w: WorkoutSession): void {
+    this.commit({ ...this.data, workouts: [...this.data.workouts, w] })
+  }
+
+  /** 同日同拆分且仍待完成视为重复，返回 false 不写入（对齐 Views.swift 的 exists 判断） */
+  addPlannedWorkout(w: PlannedWorkout): boolean {
+    const exists = this.data.plannedWorkouts.some(
+      (x) => sameDay(x.date, w.date) && x.splitName === w.splitName && x.status === 'planned',
+    )
+    if (exists) return false
+    this.commit({ ...this.data, plannedWorkouts: [...this.data.plannedWorkouts, w] })
+    return true
+  }
+
+  /** 幂等：仅 planned 才动，并落成一条训练历史（对齐 Views.swift 的 finishLocally） */
+  completePlannedWorkout(id: string): boolean {
+    const plan = this.data.plannedWorkouts.find((w) => w.id === id)
+    if (plan == null || plan.status !== 'planned') return false
+    const plannedWorkouts: PlannedWorkout[] = this.data.plannedWorkouts.map((w) =>
+      w.id === id ? { ...w, status: 'completed' as WorkoutStatus } : w,
+    )
+    const exercises: ExerciseEntry[] = plan.exercises.map((ex) => {
+      const sets: SetEntry[] = Array.from({ length: Math.max(1, ex.targetSets) }, () => ({
+        reps: ex.targetReps,
+        weightKG: ex.targetWeightKG,
+      }))
+      return { id: newID(), name: ex.name, sets }
+    })
+    const session: WorkoutSession = {
+      id: newID(),
+      date: plan.date,
+      splitName: plan.splitName,
+      exercises,
+      durationMin: 60,
+      notes: '',
+    }
+    this.commit({
+      ...this.data,
+      plannedWorkouts,
+      workouts: [...this.data.workouts, session],
+    })
+    return true
+  }
+
+  skipPlannedWorkout(id: string): void {
+    const plan = this.data.plannedWorkouts.find((w) => w.id === id)
+    if (plan == null || plan.status !== 'planned') return
+    this.commit({
+      ...this.data,
+      plannedWorkouts: this.data.plannedWorkouts.map((w) =>
+        w.id === id ? { ...w, status: 'skipped' as WorkoutStatus } : w,
+      ),
+    })
+  }
+
+  addBodyMetric(m: BodyMetric): void {
+    this.commit({ ...this.data, bodyMetrics: [...this.data.bodyMetrics, m] })
+  }
+
+  addDietLog(l: DietLog): void {
+    this.commit({ ...this.data, dietLogs: [...this.data.dietLogs, l] })
+  }
+
+  /** 待完成的计划，按日期升序（训练页与导出 .ics 共用） */
+  upcomingPlanned(): PlannedWorkout[] {
+    return this.data.plannedWorkouts
+      .filter((w) => w.status === 'planned')
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+  }
+
+  // MARK: - 训练历史
+
+  clearWorkouts(): void {
+    if (this.data.workouts.length === 0) return
+    this.commit({ ...this.data, workouts: [] })
+  }
+
+  deleteWorkout(id: string): void {
+    const workouts = this.data.workouts.filter((w) => w.id !== id)
+    if (workouts.length === this.data.workouts.length) return
+    this.commit({ ...this.data, workouts })
+  }
+
+  // MARK: 查询辅助
+
+  get latestWeight(): number | null {
+    const sorted = this.sortedMetrics
+    return sorted.length === 0 ? null : sorted[sorted.length - 1].weightKG
+  }
+
+  /** 估算卡路里与配重统一取这个体重：没有身体记录时退回目标体重 */
+  get currentBodyWeightKG(): number {
+    return this.latestWeight ?? this.data.goal.targetWeightKG
+  }
+
+  get sortedMetrics(): BodyMetric[] {
+    return [...this.data.bodyMetrics].sort((a, b) => a.date.getTime() - b.date.getTime())
+  }
+
+  get sortedWorkouts(): WorkoutSession[] {
+    return [...this.data.workouts].sort((a, b) => b.date.getTime() - a.date.getTime())
+  }
+
+  planned(on: Date): PlannedWorkout[] {
+    return this.data.plannedWorkouts.filter((w) => sameDay(w.date, on))
+  }
+
+  // MARK: 导入导出
+
+  /**
+   * 导出为 `AppData` 原样展开 + 一个 `chat` 键（聊天历史）。
+   * 保持 AppData 字段在顶层，旧导出文件与新文件都能被 Importer 原样读回。
+   */
+  exportJSON(): string {
+    const obj = JSON.parse(encodeJSON(this.data)) as Record<string, unknown>
+    if (this.chatMessages.length > 0) {
+      obj.chat = JSON.parse(encodeJSON(this.chatMessages))
+    }
+    return encodeJSON(obj)
+  }
+
+  /** 整体替换数据（导入用） */
+  replaceData(next: AppData): void {
+    this.commit(next)
+  }
+
+  reload(): void {
+    const raw = read(DATA_KEY)
+    const parsed = raw == null ? null : safeParse(raw)
+    this.data = parsed == null ? emptyAppData() : normalizeData(parsed)
+    this.emit()
+  }
+}
+
+// MARK: - 小工具
+
+/**
+ * 解析存下来的 JSON。
+ *
+ * 必须走 decodeJSON 而不是裸 JSON.parse：后者不会把 `date` 还原成 Date，
+ * 读回来的数据里日期是字符串，排序时 `.date.getTime()` 直接抛错（刷新页面必崩）。
+ */
+function safeParse(text: string): unknown {
+  try {
+    return decodeJSON(text)
+  } catch {
+    return null
+  }
+}
+
+function isObject(v: unknown): v is Record<string, any> {
+  return v != null && typeof v === 'object' && !Array.isArray(v)
+}
+
+function sameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+function normalizeSex(raw: string): string | null {
+  const s = raw.toLowerCase().trim()
+  if (s.startsWith('m') || s.startsWith('男')) return 'male'
+  if (s.startsWith('f') || s.startsWith('女')) return 'female'
+  return null
+}
+
+function sexLabel(s: string): string {
+  return s.toLowerCase().startsWith('f') ? '女' : '男'
+}
+
+function normalizeGoalType(raw: string): GoalType | null {
+  const s = raw.toLowerCase().trim()
+  if (s.includes('bulk') || s.includes('增肌')) return 'bulk'
+  if (s.includes('cut') || s.includes('减脂') || s.includes('减重')) return 'cut'
+  if (s.includes('maintain') || s.includes('维持') || s.includes('保持')) return 'maintain'
+  return null
+}
+
+/** 活动系数吸附到设置页提供的档位 */
+function snapActivityLevel(raw: number): number | null {
+  const levels = [1.2, 1.375, 1.55, 1.725, 1.9]
+  let best: number | null = null
+  for (const l of levels) {
+    // 严格小于：与 Swift 的 min(by:) 一样取第一个最近档位
+    if (best == null || Math.abs(l - raw) < Math.abs(best - raw)) best = l
+  }
+  return best
+}
+
+export const store = new AppStore()
+export { AppStore, MAX_CHAT, newID }
