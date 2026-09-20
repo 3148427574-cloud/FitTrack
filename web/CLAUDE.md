@@ -133,10 +133,34 @@ cd scripts/oracle && swiftc -O -o /tmp/ftoracle \
 - ✅ 侧栏 + 7 个页面：概览 / 训练 / 饮食 / 身体 / AI 助手 / 导入导出 / 设置
 - ✅ PWA 图标 `public/icon-192.png`、`icon-512.png`、`apple-touch-icon.png`
   （用 `qlmanage` 栅格化 `favicon.svg` 再用 PIL 居中贴到 `#111417` 底上，图形占 62% 落在 maskable 安全区）
-- ⬜ `npm run deploy` 没跑：`/Users/frost/FitTrack` 下没有 `.git`，gh-pages 流程起不来
+- ✅ 已上线：https://3148427574-cloud.github.io/FitTrack/（见下方「部署」）
+
+## 部署
+
+已上线：https://3148427574-cloud.github.io/FitTrack/
+
+- 仓库 `3148427574-cloud/FitTrack`（**公开**）—— GitHub Pages 对私有仓库要付费，所以是 public。
+- `main` 分支放源码（`Sources/` Mac + `web/` 网页版），`gh-pages` 分支只放 `web/dist` 产物。
+- Pages 的 source 是 `gh-pages` 分支 `/`，`build_type: legacy`，没用 GitHub Actions。
+- 更新线上：`cd web && npm run deploy`（第 8 步的 `gh-pages -d dist --dotfiles` 会重新构建再推）。
+
+```bash
+# 查看 Pages 状态与最近一次构建
+gh api repos/3148427574-cloud/FitTrack/pages
+gh api repos/3148427574-cloud/FitTrack/pages/builds --jq '.[0] | {status, error: .error.message}'
+```
+
+本机 `~/.gitconfig` 里没设 `user.email`，而 `git commit` 需要它，所以提交时用的是临时身份
+（不改全局配置）：
+
+```bash
+git -c user.name="3148427574-cloud" \
+    -c user.email="264557827+3148427574-cloud@users.noreply.github.com" commit -m "..."
+# gh-pages 内部也要提交，用环境变量喂给它
+GIT_AUTHOR_NAME=... GIT_AUTHOR_EMAIL=... GIT_COMMITTER_NAME=... GIT_COMMITTER_EMAIL=... npm run deploy
+```
 
 ## 下一步
 
-1. `git init` + 关联 GitHub 仓库，然后 `npm run deploy`，按计划里的 `gh api` 打开 Pages。
-2. 用 Mac 版导出的真实 `fittrack.json` 走一遍导入导出，确认 `weightKG` 兼容（`Importer.pickWeight`
-   优先读 `weight_kg`，同时认 `weightKG`）。
+用 Mac 版导出的真实 `fittrack.json` 走一遍导入导出，确认 `weightKG` 兼容（`Importer.pickWeight`
+优先读 `weight_kg`，同时认 `weightKG`）。
