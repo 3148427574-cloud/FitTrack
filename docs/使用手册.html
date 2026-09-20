@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>使用手册.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="fittrack-使用手册">FitTrack 使用手册</h1>
+<blockquote>
+<p>这份是给使用者看的。技术实现、架构与算法细节见 <code>docs/开发文档.md</code>，开发约定见根目录 <code>CLAUDE.md</code>。</p>
+</blockquote>
+<h2 id="1-两个版本">1. 两个版本</h2>
+<p>同一套功能做了两个版本，数据格式完全互通（JSON 可以互相导入），但<strong>各自独立、不会自动同步</strong>。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>网页版</th>
+<th>Mac 版</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>在哪用</td>
+<td>浏览器打开 https://3148427574-cloud.github.io/FitTrack/</td>
+<td>装 DMG，macOS 14+</td>
+</tr>
+<tr>
+<td>适用</td>
+<td>Windows / 安卓 / iPhone / 任何浏览器</td>
+<td>只在 Mac 上</td>
+</tr>
+<tr>
+<td>数据存哪</td>
+<td>浏览器本地（localStorage）</td>
+<td><code>~/Library/Application Support/FitTrack/</code></td>
+</tr>
+<tr>
+<td>API Key 存哪</td>
+<td>浏览器本地</td>
+<td>系统钥匙串 Keychain</td>
+</tr>
+<tr>
+<td>同步 Apple 提醒事项</td>
+<td>❌ 没有（用「导出 .ics」导入系统日历代替）</td>
+<td>✅ 有</td>
+</tr>
+<tr>
+<td>AI 生成计划 / AI 对话</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<p>网页版可以直接「装」成桌面应用：Chrome / Edge 在地址栏右侧点「安装」；iPhone 用 Safari 的「分享 → 添加到主屏幕」。装完有独立图标、全屏运行、断网也能打开（界面能开，AI 用不了）。</p>
+<h2 id="2-上手三步">2. 上手三步</h2>
+<ol>
+<li><strong>填个人资料</strong>：设置 → 个人资料（性别 / 年龄 / 身高 / 每周训练天数 / 活动系数）。这些直接决定饮食热量和配重，先填对。</li>
+<li><strong>定目标</strong>：设置 → 目标。选增肌 / 减脂 / 维持，填目标体重和每周增减速度。
+3.（可选）<strong>填三大项极限</strong>：设置 → 三大项极限。填了配重更准；不填也行，有训练记录后点「用历史估算」自动算。
+4.（可选）<strong>填 DeepSeek API Key</strong>：设置 → AI 设置。不填也能用，只是生成计划会走固定模板，AI 助手不可用。</li>
+</ol>
+<h2 id="3-侧栏七个页面">3. 侧栏七个页面</h2>
+<table>
+<thead>
+<tr>
+<th>页面</th>
+<th>干什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>概览</td>
+<td>看体重/目标/记录数，看目标进度，生成并查看今日训练计划</td>
+</tr>
+<tr>
+<td>训练</td>
+<td>生成计划、导出日历、记录训练、完成/跳过计划、管理历史</td>
+</tr>
+<tr>
+<td>饮食</td>
+<td>每日热量与三大营养素目标、示例餐单、记录吃了什么、食物库</td>
+</tr>
+<tr>
+<td>身体</td>
+<td>录体重体脂腰围、看体重趋势图、看历史</td>
+</tr>
+<tr>
+<td>AI 助手</td>
+<td>和 AI 聊训练/饮食问题，可让它提议修改你的资料</td>
+</tr>
+<tr>
+<td>导入导出</td>
+<td>粘贴或选文件导入历史数据，导出备份与日历</td>
+</tr>
+<tr>
+<td>设置</td>
+<td>个人资料、目标、三大项、训练偏好、API Key</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-逐页说明">4. 逐页说明</h2>
+<h3 id="41-概览">4.1 概览</h3>
+<p>上方四张卡片：最新体重、目标体重、训练记录次数、身体数据条数。</p>
+<p><strong>目标进度</strong>：录入过身体数据后显示，告诉你离目标还差多少。</p>
+<p><strong>今日训练计划</strong>：点右上「生成今日计划」。有 API Key 时 AI 会结合你的训练历史和身体数据生成；没有 Key（或 AI 调用失败）自动回退到内置模板。生成完每张卡片列出动作、组数×次数、建议重量、预计消耗。</p>
+<p>同一份计划（同一天同一个拆分）只会存在一条，重复点会提示「今日该计划已存在」。</p>
+<h3 id="42-训练">4.2 训练</h3>
+<p><strong>生成今日计划</strong>：和概览页那个按钮一样。</p>
+<p><strong>导出 .ics 日历</strong>：把待完成的计划导成日历文件。双击导入系统日历后，训练安排就出现在手机/电脑日历里。网页版没有「同步到提醒事项」（那是苹果系统独有），用这个代替。</p>
+<p><strong>记录一次训练</strong>：手动补记 —— 选拆分名、选动作、填组数/次数/重量。重量填 0 表示自重动作。</p>
+<p><strong>进行中的计划</strong>：列出所有待完成的计划，每条可以「完成」或「跳过」。</p>
+<ul>
+<li>点「完成」会把计划落成一条训练历史（按计划里的组数×次数×重量记录），并更新你的 1RM 基准，影响下次配重。</li>
+<li>点「跳过」只是标记，不影响配重。</li>
+</ul>
+<p><strong>历史训练</strong>：按时间倒序列出，最多显示最近 50 条（数据都在，只是列表截断）。每条可单独删除，右上「清空全部」一键清空 —— 两个操作都会二次确认。</p>
+<h3 id="43-饮食">4.3 饮食</h3>
+<p><strong>每日目标</strong>：根据你的资料、目标和当前体重算出每天该吃多少热量、蛋白质、碳水、脂肪。</p>
+<ul>
+<li>增肌 = 每日消耗 + 400 千卡，减脂 = 每日消耗 − 400 千卡，维持 = 每日消耗</li>
+<li>蛋白质：增肌/减脂 2.0 g/kg，维持 1.6 g/kg；脂肪 0.9 g/kg；剩下的热量给碳水</li>
+</ul>
+<p><strong>示例餐单</strong>：从食物库里挑蛋白、碳水、脂肪含量最高的食物，按 4 餐给出建议克数。只是个示例搭配，不用照做。</p>
+<p><strong>记录饮食</strong>：选食物、填克数、点添加，记下今天吃了什么。</p>
+<p><strong>食物库</strong>：每 100g 的热量与三大营养素，内置 16 种常见食物。</p>
+<h3 id="44-身体">4.4 身体</h3>
+<p><strong>趋势图</strong>：录入 2 条以上体重数据后出现，横轴日期纵轴体重。</p>
+<p><strong>录入今天</strong>：填体重（必填）、体脂%（选填）、腰围 cm（选填），点添加。空着不填的项不会记成 0，会当成「没测」。</p>
+<p><strong>历史记录</strong>：倒序列出所有记录。</p>
+<p>提示：体重这一项会被用于估算卡路里和配重，所以<strong>至少要录一次</strong>。没有身体记录时，系统会用你的「目标体重」代替。</p>
+<h3 id="45-ai-助手">4.5 AI 助手</h3>
+<p>顶部如果没有 Key，会有一条橙色提示，粘贴 <code>sk-...</code> 保存即可。Key 只存在你自己的设备上，不会上传到任何服务器（这站没有后端）。</p>
+<p>能问什么：</p>
+<ul>
+<li>动作替换：「杠铃卧推肩膀不舒服，能换成什么动作？」</li>
+<li>动作规范、计划调整、饮食营养</li>
+<li>直接说你的情况：「我想增肌增强力量，每周只能练 4 天」</li>
+</ul>
+<p><strong>AI 可以提议修改你的资料</strong>：当你说出长期的目标、身体数据或训练限制时，它会在回复下方附一张「建议更新个人资料」卡片，列出准备改什么（比如「每周训练天数：4 → 6」）。</p>
+<ul>
+<li>点<strong>应用</strong>才会真正写入，点<strong>忽略</strong>就丢弃。</li>
+<li>所有提议都会先过一遍范围校验（比如年龄只接受 10–90，身高只接受 120–250），越界会被夹到边界值。</li>
+<li><strong>它不会自动改你的任何数据</strong>，必须你点确认。</li>
+</ul>
+<p>聊天记录最多保留 40 条，超出的旧消息会被丢弃。「清空」按钮可清空全部聊天。</p>
+<h3 id="46-导入导出">4.6 导入导出</h3>
+<p><strong>导入</strong>：把 JSON 或 CSV 粘进文本框，点「导入 JSON」/「导入 CSV」；或者点「选择文件」直接选一个 <code>.json</code> / <code>.csv</code> / <code>.txt</code>（选完会自动按扩展名判断格式）。导入是<strong>追加</strong>，不会覆盖已有数据。</p>
+<p>JSON 格式：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;version&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;1.0&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;source&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;manual&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;workouts&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;date&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-09-10&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;split&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;推&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;exercises&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+        <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;杠铃卧推&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;sets&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;reps&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">8</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;weight_kg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">60</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">]</span> <span class="hljs-punctuation">}</span>
+      <span class="hljs-punctuation">]</span>
+    <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;bodyMetrics&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;date&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-09-10&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;weight_kg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">72.5</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;bodyFatPct&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">16</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;waistCM&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">80</span> <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<ul>
+<li><code>split</code> 是拆分名，不填就记为「导入」。</li>
+<li>重量字段两种写法都认：<code>weight_kg</code> 和 <code>weightKG</code>（所以 App 自己导出的文件能原样导回来）。</li>
+<li>日期支持 <code>2026-09-10</code>、<code>2026/09/10</code>、<code>2026-09-10 08:30:00</code>，或带时区的 ISO 格式。</li>
+<li>顶层还可以带 <code>chat</code> 数组（聊天记录），按 id 去重后合并。</li>
+</ul>
+<p>CSV 格式（第一行是表头）：</p>
+<pre class="hljs"><code><div>date,weight_kg,body_fat_pct,waist_cm
+2026-09-10,72.5,16,80
+</div></code></pre>
+<pre class="hljs"><code><div>date,exercise,reps,weight_kg
+2026-09-10,杠铃卧推,8,60
+2026-09-10,杠铃卧推,8,62.5
+</div></code></pre>
+<ul>
+<li>表头里含 <code>weight_kg</code>（或 <code>weightkg</code> / <code>体重</code>）就当身体数据；含 <code>exercise</code>（或 <code>动作</code>）就当训练记录。</li>
+<li>训练记录里同一天、同一个动作的多行会自动合并成一次训练的多组。</li>
+<li>分隔符逗号、分号、Tab 都能识别。</li>
+</ul>
+<p><strong>导出 JSON</strong>：导出完整备份，文件名 <code>fittrack-export.json</code>（也可被 Mac 版读回）。</p>
+<p><strong>导出 .ics</strong>：同训练页的日历导出。</p>
+<blockquote>
+<p>⚠️ <strong>重要</strong>：导入只恢复「训练记录 + 身体数据 + 聊天记录」，<strong>不恢复</strong>个人资料、目标、三大项、训练偏好这些设置。导出的文件里这些都带着，但导入时会忽略。所以换设备时，资料要手动重填一遍。</p>
+</blockquote>
+<h3 id="47-设置">4.7 设置</h3>
+<p><strong>个人资料</strong>：性别、年龄、身高、每周训练天数、活动系数（1.2 久坐 / 1.375 轻度 / 1.55 中度 / 1.725 高度 / 1.9 极高）。年龄输入框自动夹到 10–90，每周训练天数夹到 1–7。</p>
+<p><strong>目标</strong>：增肌 / 减脂 / 维持，目标体重，每周增减速度。</p>
+<p><strong>三大项极限（1RM）</strong>：填卧推/深蹲/硬拉的单次最大重量。留空就用训练历史自动估算；点「用历史估算」按钮可以把估算值直接填进去。旁边会显示「历史估算：卧推 100kg / 深蹲 140kg …」作为参考。</p>
+<p><strong>训练偏好与约束</strong>：写长期有效的限制，比如「每周只能练 4 天」「主项偏好低次数」「膝盖有旧伤，深蹲不要上太大重量」。这些会一直注入 AI 上下文，影响生成计划和对话建议。最多 12 条，每条最多 200 字。</p>
+<p><strong>AI 设置</strong>：粘贴 / 清除 DeepSeek API Key。</p>
+<blockquote>
+<p>网页版设置页没有「保存」按钮 —— 改完即时生效并落盘。Mac 版底部有个「保存」按钮。</p>
+</blockquote>
+<h2 id="5-数据存在哪--怎么备份">5. 数据存在哪 / 怎么备份</h2>
+<p>网页版的数据<strong>只在这台设备的这个浏览器里</strong>。换电脑、换浏览器、清浏览器数据、用无痕模式，都会看不到。所以：</p>
+<ul>
+<li>想换设备：在旧设备「导出 JSON」，把文件传到新设备，「导入 JSON」（记得资料要重填）。</li>
+<li>定期备份：偶尔导出一份存起来。</li>
+</ul>
+<p>Mac 版的数据是本地 JSON 文件，可以用「导出 JSON」备份，也可以用这个文件搬到网页版（反之亦然）。</p>
+<h2 id="6-数字是怎么算出来的">6. 数字是怎么算出来的</h2>
+<p>不看也不影响使用，但知道口径更放心。</p>
+<p><strong>配重（每个动作建议多少公斤）</strong> 按三级优先级：</p>
+<ol>
+<li>这个动作<strong>最近 30 天</strong>的实际训练记录，用 Epley 公式反推 1RM（超出 30 天没练，就退回历史最好成绩，避免一年前的巅峰数据把今天配重顶太高）</li>
+<li>没有记录，就用三大项锚点乘一个系数推导（比如站姿推举 = 卧推 × 0.62，腿举 = 深蹲 × 2.5）</li>
+<li>都没有，按体重比例给个保守起始值</li>
+</ol>
+<p>然后 目标重量 = 1RM × 该次数的强度百分比（8 次约 79%），最后四舍五入到 2.5kg（方便上片）。自重动作（引体向上）不配重。</p>
+<p><strong>卡路里</strong>：MET 基线 × 体重 × 时长，再乘一个身高的「行程修正」（个子高动作行程长、消耗略多）。修正系数夹在 ±8% 以内 —— 这是个启发式估算，不是实测值，卡片上会显示用了多少系数。注意 MET 基线本身不随重量变化，所以大重量那天它会偏低，这是已知的粗估。</p>
+<p><strong>饮食热量</strong>：用 Mifflin-St Jeor 公式算基础代谢，乘活动系数得每日消耗，再按目标 ±400 千卡。</p>
+<h2 id="7-常见问题">7. 常见问题</h2>
+<p><strong>换了台电脑，数据没了？</strong>
+数据存在浏览器本地，不会跟着账号走。用「导出 JSON」搬过去（资料需重填）。</p>
+<p><strong>AI 用不了 / 一直报错？</strong>
+先确认设置里的 API Key 填了且没过期。网页版的 AI 是浏览器直连 DeepSeek 的，如果网络环境访问不了 <code>api.deepseek.com</code> 就会失败。没有 Key 时，训练计划仍然可以用（走固定模板）。</p>
+<p><strong>生成的计划重复了？</strong>
+同一天、同一个拆分且还没完成的计划只会存在一条，重复生成会提示「今日该计划已存在」。想换一份，先把旧的「跳过」或「完成」。</p>
+<p><strong>改了身高体重，配重变了？</strong>
+正常。配重和卡路里都依赖体重，身高影响行程修正系数。</p>
+<p><strong>网页版为什么没有「同步到提醒事项」？</strong>
+那是苹果系统独有的接口，浏览器里没有。用「导出 .ics」再导入系统日历，效果类似。</p>
+<p><strong>手机上能用吗？</strong>
+能。iPhone 用 Safari、安卓用 Chrome 打开网址都能正常用，还可以「添加到主屏幕」当 App 用。</p>
+
+</body>
+</html>
