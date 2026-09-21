@@ -2,7 +2,7 @@
 
 import { AppStore, store } from '../store'
 import { useAppData } from '../hooks'
-import type { ChatMessage } from '../models'
+import { planExerciseCount, type AIUpdatePayload, type ChatMessage } from '../models'
 
 export function ChatBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user'
@@ -23,10 +23,12 @@ export function ProposalCard({ message }: { message: ChatMessage }) {
   const pending = AppStore.plannedChanges(payload, data).changes
   const lines = status === 'applied' ? applied : pending
 
+  const scope = proposalScope(payload)
+
   return (
     <div className="proposal">
       <div className={`head${status === 'applied' ? ' ok' : ''}`}>
-        {status === 'applied' ? '已应用到个人资料' : '建议更新个人资料'}
+        {status === 'applied' ? `已应用到${scope}` : `建议更新${scope}`}
       </div>
 
       {status === 'dismissed' ? (
@@ -72,4 +74,17 @@ export function ProposalCard({ message }: { message: ChatMessage }) {
       )}
     </div>
   )
+}
+
+/** 这张卡片会改到哪儿：长期个人资料、今日计划，还是两者都有 */
+function proposalScope(p: AIUpdatePayload): string {
+  const personal =
+    p.profile != null ||
+    p.goal != null ||
+    p.bigThree != null ||
+    (p.notes ?? []).some((n) => n.trim() !== '')
+  const plan =
+    p.plan != null && (p.plan.splitName != null || planExerciseCount(p.plan) > 0)
+  if (plan && personal) return '个人资料与今日计划'
+  return plan ? '今日训练计划' : '个人资料'
 }

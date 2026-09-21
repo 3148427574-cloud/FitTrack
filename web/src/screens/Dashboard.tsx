@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 
-import { PlanCard } from '../components/PlanCard'
+import { GeneratePlanButton, PlanCard } from '../components/PlanCard'
 import { StatCard } from '../components/ui'
 import { fmt1 } from '../engine'
 import { useAppData } from '../hooks'
-import { AIService } from '../ai'
 import { GOAL_LABELS, type BodyMetric, type Goal } from '../models'
 import { store } from '../store'
 
@@ -53,36 +52,16 @@ function GoalProgress({ metric, goal }: { metric: BodyMetric; goal: Goal }) {
 
 function TodayPlan() {
   const data = useAppData()
-  const [generating, setGenerating] = useState(false)
   const [hint, setHint] = useState('')
 
   const bodyWeight = store.currentBodyWeightKG
   const todays = store.planned(new Date())
 
-  async function generate() {
-    setGenerating(true)
-    setHint('')
-    const snapshot = store.data
-    const plan = await AIService.generatePlanWithFallback(snapshot, new Date())
-    const usedAI = AIService.hasKey() && plan.exercises.length > 0
-    const added = store.addPlannedWorkout(plan)
-    setHint(
-      added
-        ? usedAI
-          ? '已由 AI 根据训练历史生成'
-          : '未设置 API Key，使用固定模板生成（在「AI 助手」设置 Key 后可启用 AI 生成）'
-        : '今日该计划已存在',
-    )
-    setGenerating(false)
-  }
-
   return (
     <>
       <div className="row between" style={{ margin: '20px 0 10px' }}>
         <h2 style={{ margin: 0, fontSize: 19 }}>今日训练计划</h2>
-        <button className="btn" disabled={generating} onClick={generate}>
-          生成今日计划
-        </button>
+        <GeneratePlanButton onResult={setHint} />
       </div>
 
       {hint !== '' && (
@@ -92,7 +71,7 @@ function TodayPlan() {
       )}
 
       {todays.length === 0 ? (
-        <p className="dim">今日暂无计划，点击右上角生成。</p>
+        <p className="dim">今日暂无计划，点击右上角生成；生成后可在卡片上「编辑」。</p>
       ) : (
         todays.map((w) => (
           <PlanCard

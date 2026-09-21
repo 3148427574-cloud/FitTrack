@@ -7,7 +7,14 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { decodeJSON, encodeJSON, toISO, type AppData, type WorkoutSession } from './models'
+import {
+  decodeJSON,
+  encodeJSON,
+  payloadHasAnyChange,
+  toISO,
+  type AppData,
+  type WorkoutSession,
+} from './models'
 
 describe('encodeJSON 对齐 Foundation 的 prettyPrinted + sortedKeys', () => {
   it('键按字典序排出（不是插入序）', () => {
@@ -77,6 +84,19 @@ describe('decodeJSON', () => {
 
   it('不是日期的字符串留在字符串里', () => {
     expect(decodeJSON<any>('{"date":"not-a-date"}').date).toBe('not-a-date')
+  })
+})
+
+describe('payloadHasAnyChange 认得今日计划变更', () => {
+  it('只有 plan（改名或带动作）也算一次改动', () => {
+    expect(payloadHasAnyChange({ plan: { splitName: '胸' } })).toBe(true)
+    expect(payloadHasAnyChange({ plan: { exercises: [{ name: '高位下拉' }] } })).toBe(true)
+  })
+
+  it('空 plan / 无名动作用户点不出「应用」', () => {
+    expect(payloadHasAnyChange({ plan: {} })).toBe(false)
+    expect(payloadHasAnyChange({ plan: { exercises: [] } })).toBe(false)
+    expect(payloadHasAnyChange({ plan: { exercises: [{ name: '  ' }] } })).toBe(false)
   })
 })
 

@@ -339,6 +339,56 @@ describe('TrainingPlanner.generatePlan', () => {
   }
 })
 
+// MARK: - 指定部位生成（网页版新增：胸/背/腿/自定义，不走按星期轮转）
+
+describe('TrainingPlanner 指定部位生成', () => {
+  const data: AppData = { ...scenarios.both, profile: { ...profile, trainingDaysPerWeek: 4 } }
+  const planDate = new Date('2026-09-21T10:00:00')
+
+  it('胸 / 背 / 腿 用各自的模板，并沿用所选名称', () => {
+    const expected: [string, string[]][] = [
+      ['胸', ['杠铃卧推', '上斜哑铃卧推', '站姿推举', '哑铃侧平举', '绳索下压', '仰卧臂屈伸']],
+      ['背', ['硬拉', '引体向上', '杠铃划船', '面拉', '哑铃弯举', '锤式弯举']],
+      ['腿', ['杠铃深蹲', '罗马尼亚硬拉', '腿举', '腿弯举', '站姿提踵']],
+    ]
+    for (const [focus, names] of expected) {
+      let n = 0
+      const plan = TrainingPlanner.generatePlan(planDate, data, () => `id-${n++}`, focus)
+      expect(plan.splitName).toBe(focus)
+      expect(plan.exercises.map((e) => e.name)).toEqual(names)
+      expect(plan.status).toBe('planned')
+    }
+  })
+
+  it('自定义：按关键词从动作库挑动作，多关节 4×8、孤立 3×12', () => {
+    let n = 0
+    const plan = TrainingPlanner.generatePlan(planDate, data, () => `id-${n++}`, '肩+三头')
+    expect(plan.splitName).toBe('肩+三头')
+    expect(plan.exercises.map((e) => `${e.name} ${e.targetSets}×${e.targetReps}`)).toEqual([
+      '站姿推举 4×8',
+      '哑铃侧平举 3×12',
+      '面拉 3×12',
+      '绳索下压 3×12',
+      '仰卧臂屈伸 3×12',
+    ])
+    expect(plan.exercises.every((e) => e.targetWeightKG > 0)).toBe(true)
+  })
+
+  it('自定义挑不到动作时退回全身模板，名称仍用用户填的', () => {
+    let n = 0
+    const plan = TrainingPlanner.generatePlan(planDate, data, () => `id-${n++}`, '不存在的部位')
+    expect(plan.splitName).toBe('不存在的部位')
+    expect(plan.exercises.map((e) => e.name)).toEqual([
+      '杠铃深蹲',
+      '杠铃卧推',
+      '杠铃划船',
+      '站姿推举',
+      '哑铃弯举',
+      '绳索下压',
+    ])
+  })
+})
+
 // MARK: - 提醒 / .ics 文案
 
 describe('WorkoutText', () => {

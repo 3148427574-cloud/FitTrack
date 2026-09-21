@@ -19,6 +19,8 @@ import type {
   BigThreePatch,
   Goal,
   GoalPatch,
+  PlanPatch,
+  PlannedWorkout,
   ProfilePatch,
   UserProfile,
 } from './models'
@@ -335,6 +337,217 @@ describe('AppStore.plannedChanges 对齐 Swift oracle', () => {
       expect(project(r.updated)).toEqual(expected.updated)
     })
   }
+})
+
+// MARK: - 今日计划变更（网页版新增，Mac 版没有对应实现，因此不进 Swift oracle）
+
+const TODAY = new Date('2026-09-21T10:00:00')
+
+function todayPlan(overrides: Partial<PlannedWorkout> = {}): PlannedWorkout {
+  return {
+    id: 'p1',
+    date: TODAY,
+    splitName: '胸',
+    exercises: [
+      { id: 'e1', name: '杠铃卧推', targetSets: 4, targetReps: 8, targetWeightKG: 60 },
+      { id: 'e2', name: '上斜哑铃卧推', targetSets: 3, targetReps: 10, targetWeightKG: 27.5 },
+    ],
+    status: 'planned',
+    ...overrides,
+  }
+}
+
+function dataWith(
+  plannedWorkouts: PlannedWorkout[],
+  bigThree: BigThreeMax | null = null,
+): AppData {
+  return { ...baseData(bigThree, null, null), plannedWorkouts }
+}
+
+function planPayload(plan: PlanPatch): AIUpdatePayload {
+  return { ...payload(), plan }
+}
+
+/** 动作的可断言形状：id 是随机生成的，不参与比较 */
+function planShape(w: PlannedWorkout | undefined) {
+  return w?.exercises.map((e) => ({
+    name: e.name,
+    targetSets: e.targetSets,
+    targetReps: e.targetReps,
+    targetWeightKG: e.targetWeightKG,
+  }))
+}
+
+describe('plannedChanges 的今日计划变更', () => {
+  it('换动作：按名字对齐，报新增与移除', () => {
+    const r = AppStore.plannedChanges(
+      planPayload({
+        exercises: [
+          { name: '杠铃卧推', targetSets: 4, targetReps: 8, targetWeightKG: 60 },
+          // 没给重量：走三大项锚点推导（卧推 100 × 0.95 × 10 次的 0.75 强度 → 72.5）
+          { name: '高位下拉', targetSets: 3, targetReps: 10 },
+        ],
+      }),
+      dataWith([todayPlan()], { benchKG: 100 }),
+      TODAY,
+    )
+
+    expect(r.changes).toEqual(['新增动作：高位下拉 3×10 72.5kg', '移除动作：上斜哑铃卧推'])
+    expect(planShape(r.updated.plannedWorkouts[0])).toEqual([
+      { name: '杠铃卧推', targetSets: 4, targetReps: 8, targetWeightKG: 60 },
+      { name: '高位下拉', targetSets: 3, targetReps: 10, targetWeightKG: 72.5 },
+    ])
+  })
+
+  it('改组数/次数/重量：只报变了的那一行', () => {
+    const r = AppStore.plannedChanges(
+      planPayload({
+        exercises: [
+          { name: '杠铃卧推', targetSets: 5, targetReps: 5, targetWeightKG: 70 },
+          { name: '上斜哑铃卧推', targetSets: 3, targetReps: 10, targetWeightKG: 27.5 },
+        ],
+      }),
+      dataWith([todayPlan()]),
+      TODAY,
+    )
+
+    expect(r.changes).toEqual(['杠铃卧推：4×8 60.0kg → 5×5 70.0kg'])
+  })
+
+  it('越界值夹紧：组数封顶 10、次数兜底 1、重量封顶 400', () => {
+    const r = AppStore.plannedChanges(
+      planPayload({
+        exercises: [{ name: '杠铃卧推', targetSets: 99, targetReps: 0, targetWeightKG: 9999 }],
+      }),
+      dataWith([todayPlan()]),
+      TODAY,
+    )
+
+    expect(r.changes).toEqual([
+      '杠铃卧推：4×8 60.0kg → 10×1 400.0kg',
+      '移除动作：上斜哑铃卧推',
+    ])
+    expect(planShape(r.updated.plannedWorkouts[0])).toEqual([
+      { name: '杠铃卧推', targetSets: 10, targetReps: 1, targetWeightKG: 400 },
+    ])
+  })
+
+  it('自重动作重量清零；同名动作缺重量时沿用原配重', () => {
+    const r = AppStore.plannedChanges(
+      planPayload({
+        exercises: [
+          { name: '杠铃卧推', targetSets: 4, targetReps: 8 },
+          { name: '引体向上', targetSets: 3, targetReps: 8, targetWeightKG: 50 },
+        ],
+      }),
+      dataWith([todayPlan()]),
+      TODAY,
+    )
+
+    expect(r.changes).toEqual(['新增动作：引体向上 3×8 自重', '移除动作：上斜哑铃卧推'])
+    expect(planShape(r.updated.plannedWorkouts[0])).toEqual([
+      { name: '杠铃卧推', targetSets: 4, targetReps: 8, targetWeightKG: 60 },
+      { name: '引体向上', targetSets: 3, targetReps: 8, targetWeightKG: 0 },
+    ])
+  })
+
+  it('只改名：动作原样保留', () => {
+    const r = AppStore.plannedChanges(
+      planPayload({ splitName: '胸+三头' }),
+      dataWith([todayPlan()]),
+      TODAY,
+    )
+
+    expect(r.changes).toEqual(['计划名称：胸 → 胸+三头'])
+    expect(r.updated.plannedWorkouts[0].splitName).toBe('胸+三头')
+    expect(planShape(r.updated.plannedWorkouts[0])).toEqual(planShape(todayPlan()))
+  })
+
+  it('同名不改：什么都不报，计划数组整份不换', () => {
+    const same = todayPlan()
+    const data = dataWith([same])
+    const r = AppStore.plannedChanges(
+      planPayload({ splitName: '胸', exercises: planShape(same) }),
+      data,
+      TODAY,
+    )
+
+    expect(r.changes).toEqual([])
+    // 数组引用没换 → 落盘侧也就不会 commit，React 不会白重渲染
+    expect(r.updated.plannedWorkouts).toBe(data.plannedWorkouts)
+  })
+
+  it('一天两条计划时按名字点名，另一条不动', () => {
+    const chest = todayPlan()
+    const legs = todayPlan({
+      id: 'p2',
+      splitName: '腿',
+      exercises: [{ id: 'e9', name: '杠铃深蹲', targetSets: 4, targetReps: 8, targetWeightKG: 100 }],
+    })
+
+    const r = AppStore.plannedChanges(
+      planPayload({
+        splitName: '腿',
+        exercises: [{ name: '腿举', targetSets: 3, targetReps: 12, targetWeightKG: 100 }],
+      }),
+      dataWith([chest, legs]),
+      TODAY,
+    )
+
+    expect(r.changes).toEqual(['新增动作：腿举 3×12 100.0kg', '移除动作：杠铃深蹲'])
+    expect(planShape(r.updated.plannedWorkouts[0])).toEqual(planShape(chest))
+    expect(planShape(r.updated.plannedWorkouts[1])).toEqual([
+      { name: '腿举', targetSets: 3, targetReps: 12, targetWeightKG: 100 },
+    ])
+  })
+
+  it('今日没有待完成计划：不产生任何变更', () => {
+    const yesterday = todayPlan({ id: 'p3', date: new Date('2026-09-20T10:00:00') })
+    const r = AppStore.plannedChanges(
+      planPayload({
+        exercises: [{ name: '腿举', targetSets: 3, targetReps: 12, targetWeightKG: 100 }],
+      }),
+      dataWith([yesterday]),
+      TODAY,
+    )
+
+    expect(r.changes).toEqual([])
+    expect(r.updated.plannedWorkouts).toEqual([yesterday])
+  })
+
+  it('已完成 / 已跳过的今日计划不动：改了也不会同步回训练历史', () => {
+    for (const status of ['completed', 'skipped'] as const) {
+      const r = AppStore.plannedChanges(
+        planPayload({
+          exercises: [{ name: '腿举', targetSets: 3, targetReps: 12, targetWeightKG: 100 }],
+        }),
+        dataWith([todayPlan({ status })]),
+        TODAY,
+      )
+
+      expect(r.changes).toEqual([])
+    }
+  })
+})
+
+describe('decodePayload 的 plan 字段', () => {
+  it('坏条目被丢掉（非对象 / 没名字 / 重量不是数字），其余照常解析', () => {
+    const p = AppStore.decodePayload(
+      '{"plan":{"splitName":"背","exercises":[{"name":"高位下拉","targetSets":4,"targetReps":10,"targetWeightKG":"60"},{"targetSets":3},"x"]},"reason":"换动作"}',
+    )
+
+    expect(p?.plan).toEqual({
+      splitName: '背',
+      exercises: [{ name: '高位下拉', targetSets: 4, targetReps: 10, targetWeightKG: null }],
+    })
+    expect(p?.reason).toBe('换动作')
+  })
+
+  it('旧载荷（没有 plan 字段）照常解析', () => {
+    const p = AppStore.decodePayload('{"goal":{"type":"cut"}}')
+    expect(p?.plan).toBeUndefined()
+    expect(p?.goal?.type).toBe('cut')
+  })
 })
 
 // MARK: - 落盘往返

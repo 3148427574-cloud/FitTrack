@@ -13,6 +13,8 @@ import {
   fmt0,
   fmt1,
   fmt2,
+  isBodyweight,
+  weightText,
   type BigThreeLift,
 } from './engine'
 import {
@@ -32,6 +34,9 @@ import {
   type ExerciseEntry,
   type Goal,
   type GoalType,
+  type PlanPatch,
+  type PlannedExercise,
+  type PlannedExercisePatch,
   type PlannedWorkout,
   type SetEntry,
   type UserProfile,
@@ -248,10 +253,13 @@ class AppStore {
   /**
    * 纯函数版：逐字段白名单校验 + 范围夹紧，返回变更摘要与改好的数据副本。
    * 聊天里的确认卡片用它做预览，点「应用」时走同一个函数，保证预览与落地一致。
+   *
+   * `now` 只影响「今日计划」变更挑哪一天的计划；默认取当前时间。
    */
   static plannedChanges(
     payload: AIUpdatePayload,
     data: AppData,
+    now: Date = new Date(),
   ): { changes: string[]; updated: AppData } {
     const out: AppData = {
       ...data,
@@ -370,6 +378,16 @@ class AppStore {
       if (notes.length > 0) out.coachNotes = notes
     }
 
+    // 今日计划变更（网页版新增，Mac 版没有）：只有真的改到东西才替换数组
+    const plan = payload.plan
+    if (plan != null) {
+      const r = applyPlanPatch(plan, out, now)
+      if (r.workouts != null) {
+        out.plannedWorkouts = r.workouts
+        changes.push(...r.changes)
+      }
+    }
+
     return { changes, updated: out }
   }
 
@@ -412,6 +430,23 @@ class AppStore {
         benchKG: num(x.benchKG),
         squatKG: num(x.squatKG),
         deadliftKG: num(x.deadliftKG),
+      }
+    }
+    if (isObject(r.plan)) {
+      const x = r.plan
+      out.plan = {
+        splitName: str(x.splitName),
+        exercises: Array.isArray(x.exercises)
+          ? x.exercises
+              .filter(isObject)
+              .map((e) => ({
+                name: str(e.name) ?? '',
+                targetSets: num(e.targetSets),
+                targetReps: num(e.targetReps),
+                targetWeightKG: num(e.targetWeightKG),
+              }))
+              .filter((e) => e.name.trim() !== '')
+          : null,
       }
     }
     if (Array.isArray(r.notes)) {
@@ -496,6 +531,16 @@ class AppStore {
       plannedWorkouts,
       workouts: [...this.data.workouts, session],
     })
+    return true
+  }
+
+  /** 手动编辑计划（网页版新增：计划卡片上的「编辑」面板保存时调用） */
+  updatePlannedWorkout(id: string, patch: Partial<PlannedWorkout>): boolean {
+    const idx = this.data.plannedWorkouts.findIndex((w) => w.id === id)
+    if (idx < 0) return false
+    const plannedWorkouts = [...this.data.plannedWorkouts]
+    plannedWorkouts[idx] = { ...plannedWorkouts[idx], ...patch }
+    this.commit({ ...this.data, plannedWorkouts })
     return true
   }
 
@@ -615,6 +660,125 @@ function sameDay(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   )
+}
+
+// MARK: - 今日计划变更（AI 聊天用，Mac 版没有对应实现）
+
+/**
+ * 落地 AI 的今日计划变更，返回变更摘要与新的 plannedWorkouts（没改到东西时为 null）。
+ *
+ * 只动「今天的、状态仍为 planned」的计划：已完成的计划改了也不会同步回训练历史，容易误导。
+ * patch.splitName 命中今天的某条计划名时改那条（用来在一天多条计划时点名），
+ * 没命中就是改名，落到今天的第一条计划上。
+ */
+function applyPlanPatch(
+  patch: PlanPatch,
+  data: AppData,
+  now: Date,
+): { changes: string[]; workouts: PlannedWorkout[] | null } {
+  const todays = data.plannedWorkouts.filter(
+    (w) => w.status === 'planned' && sameDay(w.date, now),
+  )
+  const named =
+    patch.splitName == null
+      ? undefined
+      : todays.find((w) => w.splitName === patch.splitName!.trim())
+  const target = named ?? todays[0]
+  if (target == null) return { changes: [], workouts: null }
+
+  const changes: string[] = []
+  let splitName = target.splitName
+  if (patch.splitName != null) {
+    const v = patch.splitName.trim().slice(0, 30)
+    if (v !== '' && v !== splitName) {
+      changes.push(`计划名称：${splitName} → ${v}`)
+      splitName = v
+    }
+  }
+
+  let exercises = target.exercises
+  if (patch.exercises != null && patch.exercises.length > 0) {
+    const next = planExercises(patch.exercises, target.exercises, data)
+    if (next.length > 0) {
+      changes.push(...planDiff(target.exercises, next))
+      exercises = next
+    }
+  }
+
+  if (changes.length === 0) return { changes: [], workouts: null }
+  return {
+    changes,
+    workouts: data.plannedWorkouts.map((w) =>
+      w.id === target.id ? { ...w, splitName, exercises } : w,
+    ),
+  }
+}
+
+/** 把 AI 给的动作列表补成可落地的 PlannedExercise：缺的组次/重量按旧值或配重链兜底 */
+function planExercises(
+  incoming: PlannedExercisePatch[],
+  previous: PlannedExercise[],
+  data: AppData,
+): PlannedExercise[] {
+  const sorted = [...data.bodyMetrics].sort((a, b) => a.date.getTime() - b.date.getTime())
+  const bodyWeight = sorted[sorted.length - 1]?.weightKG ?? data.goal.targetWeightKG
+  const prevByName = new Map(previous.map((e) => [e.name, e]))
+
+  const out: PlannedExercise[] = []
+  for (const raw of incoming) {
+    const name = typeof raw.name === 'string' ? raw.name.trim() : ''
+    if (name === '') continue
+    const prev = prevByName.get(name)
+    const targetSets = clamp(Math.round(raw.targetSets ?? prev?.targetSets ?? 3), 1, 10)
+    const targetReps = clamp(Math.round(raw.targetReps ?? prev?.targetReps ?? 10), 1, 30)
+    let targetWeightKG: number
+    if (isBodyweight(name)) {
+      targetWeightKG = 0
+    } else if (raw.targetWeightKG == null || raw.targetWeightKG <= 0) {
+      // 模型漏填重量：同名动作沿用原配重，新动作走配重优先级链
+      targetWeightKG =
+        prev != null && prev.targetWeightKG > 0
+          ? prev.targetWeightKG
+          : StrengthModel.prescribedWeight(name, targetReps, data, bodyWeight)
+    } else {
+      targetWeightKG = StrengthModel.roundToPlate(clamp(raw.targetWeightKG, 0, 400))
+    }
+    out.push({
+      id: prev?.id ?? newID(),
+      name,
+      targetSets,
+      targetReps,
+      targetWeightKG: Math.max(0, targetWeightKG),
+    })
+  }
+  return out
+}
+
+/** 新旧动作列表的差异摘要：新增 / 移除 / 组次重量的变化 */
+function planDiff(previous: PlannedExercise[], next: PlannedExercise[]): string[] {
+  const diff: string[] = []
+  const prevByName = new Map(previous.map((e) => [e.name, e]))
+  const nextNames = new Set(next.map((e) => e.name))
+  for (const e of next) {
+    const prev = prevByName.get(e.name)
+    if (prev == null) diff.push(`新增动作：${planLine(e)}`)
+    else if (planTarget(prev) !== planTarget(e)) {
+      diff.push(`${e.name}：${planTarget(prev)} → ${planTarget(e)}`)
+    }
+  }
+  for (const e of previous) {
+    if (!nextNames.has(e.name)) diff.push(`移除动作：${e.name}`)
+  }
+  return diff
+}
+
+function planLine(e: PlannedExercise): string {
+  return `${e.name} ${planTarget(e)}`
+}
+
+/** 「4×8 60kg」/「4×8 自重」 */
+function planTarget(e: PlannedExercise): string {
+  return `${e.targetSets}×${e.targetReps} ${weightText(e.name, e.targetWeightKG)}`
 }
 
 function normalizeSex(raw: string): string | null {

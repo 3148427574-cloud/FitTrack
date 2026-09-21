@@ -171,15 +171,42 @@ export interface BigThreePatch {
   deadliftKG?: number | null
 }
 
+export interface PlannedExercisePatch {
+  name: string
+  targetSets?: number | null
+  targetReps?: number | null
+  targetWeightKG?: number | null
+}
+
+/**
+ * AI 对今日训练计划的修改。
+ * exercises 是调整后的「完整动作列表」——未改动的动作也要原样带上，
+ * 落地时整体替换，这样预览卡片展示的就是最终结果，不用猜增量语义。
+ */
+export interface PlanPatch {
+  /** 新的计划名称（如「胸」「肩+三头」）；缺省表示不改名 */
+  splitName?: string | null
+  /** 调整后的完整动作列表；缺省或空数组表示不改动作 */
+  exercises?: PlannedExercisePatch[] | null
+}
+
 /** AI 可以提议修改的个人资料字段（白名单）。单个字段缺失即不改。 */
 export interface AIUpdatePayload {
   profile?: ProfilePatch | null
   goal?: GoalPatch | null
   bigThree?: BigThreePatch | null
+  /** 今日训练计划的调整（网页版新增，Mac 版没有） */
+  plan?: PlanPatch | null
   /** 追加到 AppData.coachNotes 的长期偏好/约束 */
   notes?: string[] | null
   /** 一句话说明改动理由，显示在确认卡片上 */
   reason?: string | null
+}
+
+/** 计划变更里「有名字」的动作条数：无名条目会被落地逻辑丢弃，不算一次改动 */
+export function planExerciseCount(p: PlanPatch): number {
+  return (p.exercises ?? []).filter((e) => typeof e.name === 'string' && e.name.trim() !== '')
+    .length
 }
 
 export function payloadHasAnyChange(p: AIUpdatePayload): boolean {
@@ -200,6 +227,7 @@ export function payloadHasAnyChange(p: AIUpdatePayload): boolean {
       x.weeklyTargetDeltaKG != null,
     ) ||
     has(p.bigThree, (x) => x.benchKG != null || x.squatKG != null || x.deadliftKG != null) ||
+    has(p.plan, (x) => x.splitName != null || planExerciseCount(x) > 0) ||
     (p.notes ?? []).filter((n) => n.trim() !== '').length > 0
   )
 }

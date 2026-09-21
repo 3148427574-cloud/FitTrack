@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 
-import { AIService } from '../ai'
+import { GeneratePlanButton } from '../components/PlanCard'
 import { Card, NumberField, Sheet, formatDate, useConfirmDialog } from '../components/ui'
 import { downloadText } from '../download'
 import { useAppData } from '../hooks'
@@ -15,20 +15,12 @@ import { store } from '../store'
 
 export function Training() {
   const data = useAppData()
-  const [generatingPlan, setGeneratingPlan] = useState(false)
+  const [hint, setHint] = useState('')
   const [showAddLog, setShowAddLog] = useState(false)
   const { ask, dialog } = useConfirmDialog()
 
   const upcoming = store.upcomingPlanned()
   const history = store.sortedWorkouts
-
-  async function generateToday() {
-    setGeneratingPlan(true)
-    const snapshot = store.data
-    const plan = await AIService.generatePlanWithFallback(snapshot, new Date())
-    store.addPlannedWorkout(plan)
-    setGeneratingPlan(false)
-  }
 
   function exportICS() {
     downloadText(
@@ -43,9 +35,7 @@ export function Training() {
       <h1>训练</h1>
 
       <div className="row">
-        <button className="btn" disabled={generatingPlan} onClick={generateToday}>
-          生成今日计划
-        </button>
+        <GeneratePlanButton onResult={setHint} />
         <button className="btn" onClick={exportICS}>
           导出 .ics 日历
         </button>
@@ -54,9 +44,9 @@ export function Training() {
         </button>
       </div>
 
-      {generatingPlan && (
+      {hint !== '' && (
         <p className="dim" style={{ marginTop: 10, fontSize: 13 }}>
-          AI 正在生成计划…
+          {hint}
         </p>
       )}
 

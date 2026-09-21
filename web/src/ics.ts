@@ -2,13 +2,12 @@
 // WorkoutText + ICSExporter。EventKit 那半边是苹果独有，网页版没有对应能力，
 // 整块丢弃（训练页因此只有「导出 .ics」，没有「同步到提醒事项」）。
 
-import { baseTotal, calories, fmt0, fmt1, fmt2, isBodyweight, totalCalories } from './engine'
+import { baseTotal, calories, fmt0, fmt2, totalCalories, weightText } from './engine'
 import type { PlannedExercise, PlannedWorkout } from './models'
 
 export const WorkoutText = {
   weightLabel(ex: PlannedExercise): string {
-    if (isBodyweight(ex.name)) return '自重'
-    return ex.targetWeightKG > 0 ? `${fmt1(ex.targetWeightKG)}kg` : '待定'
+    return weightText(ex.name, ex.targetWeightKG)
   },
 
   exerciseLine(ex: PlannedExercise, bodyWeightKG: number, heightCM: number): string {

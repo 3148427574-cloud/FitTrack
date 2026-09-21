@@ -176,6 +176,15 @@ export function isBodyweight(name: string): boolean {
   return BODYWEIGHT_EXERCISES.has(name)
 }
 
+/**
+ * 配重文案：「自重」/「60kg」/「待定」。
+ * 计划卡片、AI 上下文与计划变更摘要、.ics 导出都走这里，口径只此一份。
+ */
+export function weightText(name: string, weightKG: number): string {
+  if (isBodyweight(name)) return '自重'
+  return weightKG > 0 ? `${fmt1(weightKG)}kg` : '待定'
+}
+
 /** 力量训练代谢当量（1 MET = 1 千卡/公斤/小时） */
 export function met(name: string): number {
   if (isBodyweight(name)) return 5.0
@@ -460,6 +469,11 @@ const FULL = tpl('全身', [
   ['站姿推举', 3, 10], ['哑铃弯举', 2, 12], ['绳索下压', 2, 12],
 ])
 
+/** 「生成今日计划」可选的训练主题（前三个固定，第四个由用户输入名称） */
+export const SPLIT_FOCUSES = ['胸', '背', '腿', '自定义'] as const
+
+export const CUSTOM_FOCUS = '自定义'
+
 export const TrainingPlanner = {
   /** 根据每周训练天数选择拆分模板 */
   splits(days: number): SplitTemplate[] {
@@ -470,11 +484,59 @@ export const TrainingPlanner = {
     return [PUSH, PULL, LEGS, UPPER_A, LOWER_A, FULL]
   },
 
-  /** 生成某天的训练计划：按目标次数对应的强度自动配重 */
-  generatePlan(date: Date, data: AppData, newID: () => string): PlannedWorkout {
+  /** 用户指定的固定主题对应的模板：胸→推日、背→拉日、腿→腿日；其余（自定义）返回 null */
+  focusedTemplate(focus: string): SplitTemplate | null {
+    switch (focus.trim()) {
+      case '胸':
+        return { ...PUSH, name: '胸' }
+      case '背':
+        return { ...PULL, name: '背' }
+      case '腿':
+        return { ...LEGS, name: '腿' }
+      default:
+        return null
+    }
+  },
+
+  /**
+   * 自定义主题：按关键词（如「肩+三头」「全身」）从动作库里挑动作组一套模板。
+   * 一个都挑不出来时退回全身模板，保证离线也能生成非空计划。
+   */
+  customTemplate(focus: string, data: AppData): SplitTemplate {
+    const name = focus.trim() === '' ? FULL.name : focus.trim()
+    const keys = name.split(/[\s+＋、,，/和]+/).filter((s) => s !== '')
+    const picked = data.exercises.filter((e) =>
+      keys.some((k) => e.muscleGroup.includes(k) || e.name.includes(k)),
+    )
+    if (picked.length === 0) return { ...FULL, name }
+    return {
+      name,
+      items: picked.slice(0, 6).map((e) => ({
+        name: e.name,
+        // 多关节动作给 4×8，孤立动作 3×12，与固定模板的口径一致
+        sets: COMPOUND_EXERCISES.has(e.name) ? 4 : 3,
+        reps: COMPOUND_EXERCISES.has(e.name) ? 8 : 12,
+      })),
+    }
+  },
+
+  /**
+   * 生成某天的训练计划：按目标次数对应的强度自动配重。
+   * 传了 focus（胸/背/腿/自定义名称）就按指定主题生成；
+   * 不传则沿用旧的「按星期轮转拆分」行为（保持与 Swift 版 oracle 一致）。
+   */
+  generatePlan(
+    date: Date,
+    data: AppData,
+    newID: () => string,
+    focus?: string | null,
+  ): PlannedWorkout {
     const templates = TrainingPlanner.splits(data.profile.trainingDaysPerWeek)
     const weekday = date.getDay() + 1 // JS 0=周日，Swift component(.weekday) 1=周日
-    const split = templates[(weekday - 1) % templates.length]
+    const split =
+      focus != null && focus.trim() !== ''
+        ? (TrainingPlanner.focusedTemplate(focus) ?? TrainingPlanner.customTemplate(focus, data))
+        : templates[(weekday - 1) % templates.length]
     const sorted = [...data.bodyMetrics].sort((a, b) => a.date.getTime() - b.date.getTime())
     const bodyWeight = sorted[sorted.length - 1]?.weightKG ?? data.goal.targetWeightKG
     const exercises: PlannedExercise[] = split.items.map((item) => {
