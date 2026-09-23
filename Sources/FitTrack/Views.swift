@@ -841,34 +841,68 @@ struct DietView: View {
     @State private var logFoodName = ""
     @State private var logAmount = 100.0
 
-    var weight: Double { store.latestWeight ?? store.data.goal.targetWeightKG }
-    var macros: Macros {
+    private var weight: Double { store.currentBodyWeightKG }
+    private var strategy: DietStrategy {
+        DietPlanner.strategy(profile: store.data.profile, goal: store.data.goal, weightKG: weight)
+    }
+    private var target: Macros {
         DietPlanner.targets(profile: store.data.profile, goal: store.data.goal, weightKG: weight)
+    }
+    private var consumed: Macros {
+        DietPlanner.summary(on: .now, logs: store.data.dietLogs, foods: store.data.foods)
+    }
+    private var remaining: Macros {
+        Macros(kcal: target.kcal - consumed.kcal,
+               protein: target.protein - consumed.protein,
+               carb: target.carb - consumed.carb,
+               fat: target.fat - consumed.fat)
+    }
+    private var todayLogs: [DietLog] {
+        store.data.dietLogs.filter { Calendar.current.isDateInToday($0.date) }.sorted { $0.date > $1.date }
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Text("饮食").font(.largeTitle.bold())
-                GroupBox("每日目标 · 当前体重 \(String(format: "%.1f", weight)) kg") {
+
+                GroupBox("目标策略 · 当前体重 \(String(format: "%.1f", weight)) kg") {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(String(format: "热量 %.0f 千卡", macros.kcal)).font(.headline)
+                        Text(String(format: "TDEE %.0f 千卡 · 目标热量 %.0f 千卡", strategy.tdee, target.kcal))
+                            .font(.headline)
+                        Text(strategy.description).foregroundStyle(.secondary)
                         Text(String(format: "蛋白质 %.0f g · 碳水 %.0f g · 脂肪 %.0f g",
-                                    macros.protein, macros.carb, macros.fat))
+                                    target.protein, target.carb, target.fat))
+                            .font(.callout)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(6)
                 }
-                GroupBox("示例餐单") {
-                    VStack(alignment: .leading, spacing: 4) {
-                        ForEach(DietPlanner.sampleMealPlan(profile: store.data.profile, goal: store.data.goal,
-                                                           weightKG: weight, foods: store.data.foods), id: \.self) { line in
-                            Text(line).font(.callout)
+
+                GroupBox("今日摄入") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        nutritionRow("热量", unit: "kcal", consumed: consumed.kcal,
+                                     target: target.kcal, remaining: remaining.kcal)
+                        nutritionRow("蛋白质", unit: "g", consumed: consumed.protein,
+                                     target: target.protein, remaining: remaining.protein)
+                        nutritionRow("碳水", unit: "g", consumed: consumed.carb,
+                                     target: target.carb, remaining: remaining.carb)
+                        nutritionRow("脂肪", unit: "g", consumed: consumed.fat,
+                                     target: target.fat, remaining: remaining.fat)
+                    }
+                    .padding(6)
+                }
+
+                GroupBox("饮食建议") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(DietPlanner.suggestions(target: target, consumed: consumed), id: \.self) {
+                            Text("• \($0)").font(.callout)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(6)
                 }
+
                 GroupBox("记录饮食") {
                     HStack {
                         Picker("食物", selection: $logFoodName) {
@@ -876,15 +910,36 @@ struct DietView: View {
                         }
                         .frame(width: 180)
                         TextField("克数", value: $logAmount, format: .number).frame(width: 80)
-                        Button("添加") {
-                            store.data.dietLogs.append(DietLog(date: .now, foodName: logFoodName, amountG: logAmount))
-                            store.save()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(logFoodName.isEmpty)
+                        Button("添加") { addLog() }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(logFoodName.isEmpty || logAmount <= 0)
                     }
                     .padding(6)
                 }
+
+                GroupBox("今日日志") {
+                    if todayLogs.isEmpty {
+                        Text("今天还没有饮食记录").foregroundStyle(.secondary).padding(6)
+                    } else {
+                        ForEach(todayLogs) { log in
+                            let item = DietPlanner.nutrition(for: log, foods: store.data.foods)
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("\(log.foodName) · \(String(format: "%.0f", log.amountG))g")
+                                    Text(String(format: "%.0f kcal · 蛋白 %.1fg · 碳水 %.1fg · 脂肪 %.1fg",
+                                                item.kcal, item.protein, item.carb, item.fat))
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Text(log.date, style: .time).font(.caption).foregroundStyle(.secondary)
+                                Button("删除", role: .destructive) { store.deleteDietLog(id: log.id) }
+                                    .buttonStyle(.borderless)
+                            }
+                            .padding(.vertical, 3)
+                        }
+                    }
+                }
+
                 GroupBox("食物库（每 100g）") {
                     ForEach(store.data.foods) { f in
                         HStack {
@@ -904,6 +959,27 @@ struct DietView: View {
         .onAppear {
             if logFoodName.isEmpty, let f = store.data.foods.first { logFoodName = f.name }
         }
+    }
+
+    private func nutritionRow(_ name: String, unit: String, consumed: Double,
+                              target: Double, remaining: Double) -> some View {
+        HStack {
+            Text(name).frame(width: 60, alignment: .leading)
+            Text(String(format: "已摄入 %.0f / 目标 %.0f %@", consumed, target, unit))
+            Spacer()
+            Text(String(format: "剩余 %.0f %@", remaining, unit))
+                .foregroundStyle(remaining < 0 ? Color.orange : Color.secondary)
+        }
+        .font(.callout)
+    }
+
+    private func addLog() {
+        guard logAmount > 0, let food = store.data.foods.first(where: { $0.name == logFoodName }) else { return }
+        let scale = logAmount / 100
+        store.addDietLog(DietLog(date: .now, foodName: food.name, amountG: logAmount,
+                                 foodId: food.id, kcal: food.kcalPer100g * scale,
+                                 protein: food.proteinPer100g * scale, carb: food.carbPer100g * scale,
+                                 fat: food.fatPer100g * scale, source: "manual"))
     }
 }
 

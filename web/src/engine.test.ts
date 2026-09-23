@@ -15,9 +15,13 @@ import {
   baseTotal,
   bigThreeValue,
   calories,
+  dailyCalorieAdjustment,
   defaultWeight,
+  dietSuggestions,
   heightFactor,
   isBodyweight,
+  nutritionForDietLog,
+  summarizeDietLogsOnDate,
   totalCalories,
   type BigThreeLift,
 } from './engine'
@@ -27,7 +31,6 @@ import {
   type AppData,
   type BigThreeMax,
   type Goal,
-  type GoalType,
   type PlannedExercise,
   type PlannedWorkout,
   type UserProfile,
@@ -264,32 +267,88 @@ describe('卡路里估算', () => {
 // MARK: - 饮食
 
 describe('DietPlanner.targets', () => {
-  it('三种目标 × 四档体重宏量一致', () => {
-    const actual: Record<string, unknown> = {}
-    for (const t of ['bulk', 'cut', 'maintain'] as GoalType[]) {
-      for (const w of [55, 70, 75, 90]) {
-        const g: Goal = { ...goal, type: t }
-        const m = DietPlanner.targets(profile, g, w)
-        actual[`${t}_${w.toFixed(1)}`] = {
-          kcal: m.kcal,
-          protein: m.protein,
-          carb: m.carb,
-          fat: m.fat,
-        }
-      }
-    }
-    expect(actual).toEqual(f.diet)
+  it('按每周目标计算并限制每日盈余/缺口', () => {
+    expect(dailyCalorieAdjustment({ ...goal, type: 'bulk', weeklyTargetDeltaKG: 0.25 }))
+      .toBeCloseTo(275)
+    expect(dailyCalorieAdjustment({ ...goal, type: 'cut', weeklyTargetDeltaKG: 0.05 }))
+      .toBe(-150)
+    expect(dailyCalorieAdjustment({ ...goal, type: 'bulk', weeklyTargetDeltaKG: 2 }))
+      .toBe(700)
+    expect(dailyCalorieAdjustment({ ...goal, type: 'maintain', weeklyTargetDeltaKG: 1 }))
+      .toBe(0)
+  })
+
+  it('增肌加、减脂减、维持不变，最低目标为 1200 千卡', () => {
+    const tdee = 10 * 75 + 6.25 * profile.heightCM - 5 * profile.age + 5
+    const dailyTdee = tdee * profile.activityLevel
+    expect(DietPlanner.targets(profile, goal, 75).kcal).toBeCloseTo(dailyTdee + 275)
+    expect(DietPlanner.targets(profile, { ...goal, type: 'cut' }, 75).kcal)
+      .toBeCloseTo(dailyTdee - 275)
+    expect(DietPlanner.targets(profile, { ...goal, type: 'maintain' }, 75).kcal)
+      .toBeCloseTo(dailyTdee)
+    expect(DietPlanner.targets({ ...profile, heightCM: 120, age: 90, activityLevel: 1.2 }, { ...goal, type: 'cut', weeklyTargetDeltaKG: 1 }, 30).kcal)
+      .toBe(1200)
+  })
+})
+
+describe('饮食日志营养', () => {
+  const date = new Date('2026-09-23T12:00:00')
+  const rice = SEED_FOODS.find((food) => food.name === '米饭(熟)')!
+
+  it('旧日志按 foodName 回查，新日志优先使用快照', () => {
+    const oldLog = { id: 'old', date, foodName: rice.name, amountG: 200 }
+    expect(nutritionForDietLog(oldLog, SEED_FOODS)).toEqual({
+      kcal: rice.kcalPer100g * 2,
+      protein: rice.proteinPer100g * 2,
+      carb: rice.carbPer100g * 2,
+      fat: rice.fatPer100g * 2,
+    })
+    expect(nutritionForDietLog({ ...oldLog, id: 'new', kcal: 999, protein: 8, carb: 9, fat: 10 }, SEED_FOODS))
+      .toEqual({ kcal: 999, protein: 8, carb: 9, fat: 10 })
+  })
+
+  it('只汇总指定日期', () => {
+    const total = summarizeDietLogsOnDate([
+      { id: 'a', date, foodName: rice.name, amountG: 100 },
+      { id: 'b', date: new Date('2026-09-22T23:59:00'), foodName: rice.name, amountG: 100 },
+      { id: 'c', date, foodName: '照片食物', amountG: 80, kcal: 120, protein: 10, carb: 12, fat: 3 },
+    ], SEED_FOODS, date)
+    expect(total).toEqual({
+      kcal: rice.kcalPer100g + 120,
+      protein: rice.proteinPer100g + 10,
+      carb: rice.carbPer100g + 12,
+      fat: rice.fatPer100g + 3,
+    })
+  })
+})
+
+describe('饮食建议', () => {
+  const target = { kcal: 2200, protein: 150, carb: 260, fat: 70 }
+
+  it('有较大缺口时提示分配热量并补蛋白碳水', () => {
+    const text = dietSuggestions(target, { kcal: 1000, protein: 60, carb: 80, fat: 50 }).join(' ')
+    expect(text).toContain('尚余约 1200 千卡')
+    expect(text).toContain('蛋白质仍有明显缺口')
+    expect(text).toContain('碳水仍偏少')
+  })
+
+  it('超出热量和脂肪时给出控制建议', () => {
+    const text = dietSuggestions(target, { kcal: 2300, protein: 160, carb: 260, fat: 80 }).join(' ')
+    expect(text).toContain('今日热量目标已达到')
+    expect(text).toContain('脂肪已超出目标')
   })
 })
 
 describe('DietPlanner.sampleMealPlan', () => {
-  for (const t of ['bulk', 'cut', 'maintain'] as GoalType[]) {
-    it(`${t} 示例餐单与 Swift 逐字一致`, () => {
-      expect(
-        DietPlanner.sampleMealPlan(profile, { ...goal, type: t }, 75, SEED_FOODS),
-      ).toEqual(f.mealPlan[t])
-    })
-  }
+  it('示例餐单使用新的动态目标', () => {
+    expect(DietPlanner.sampleMealPlan(profile, goal, 75, SEED_FOODS)).toEqual([
+      '目标：2947 千卡 / 蛋白质 150g / 碳水 435g / 脂肪 68g',
+      '第1餐：乳清蛋白粉 47g + 燕麦 165g + 橄榄油 17g',
+      '第2餐：乳清蛋白粉 47g + 燕麦 165g + 橄榄油 17g',
+      '第3餐：乳清蛋白粉 47g + 燕麦 165g + 橄榄油 17g',
+      '第4餐：乳清蛋白粉 47g + 燕麦 165g + 橄榄油 17g',
+    ])
+  })
 
   it('空食物库给提示而不是崩', () => {
     expect(DietPlanner.sampleMealPlan(profile, goal, 75, [])).toEqual(

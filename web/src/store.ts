@@ -563,6 +563,12 @@ class AppStore {
     this.commit({ ...this.data, dietLogs: [...this.data.dietLogs, l] })
   }
 
+  deleteDietLog(id: string): void {
+    const dietLogs = this.data.dietLogs.filter((log) => log.id !== id)
+    if (dietLogs.length === this.data.dietLogs.length) return
+    this.commit({ ...this.data, dietLogs })
+  }
+
   /** 待完成的计划，按日期升序（训练页与导出 .ics 共用） */
   upcomingPlanned(): PlannedWorkout[] {
     return this.data.plannedWorkouts

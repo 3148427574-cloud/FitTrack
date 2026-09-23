@@ -364,6 +364,16 @@ final class AppStore: ObservableObject {
         save()
     }
 
+    func addDietLog(_ log: DietLog) {
+        data.dietLogs.append(log)
+        save()
+    }
+
+    func deleteDietLog(id: UUID) {
+        data.dietLogs.removeAll { $0.id == id }
+        save()
+    }
+
     static func defaultFileURL() -> URL {
         let fm = FileManager.default
         let dir = (fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory)

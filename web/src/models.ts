@@ -128,6 +128,15 @@ export interface DietLog {
   date: Date
   foodName: string
   amountG: number
+  /** 以下均为记录当时的营养快照；缺失时兼容旧数据并从食物库计算 */
+  foodId?: string | null
+  kcal?: number | null
+  protein?: number | null
+  carb?: number | null
+  fat?: number | null
+  source?: 'manual' | 'image' | null
+  /** 仅保存原始文件名，不保存 base64 原图 */
+  imageName?: string | null
 }
 
 // MARK: - AI 聊天

@@ -4,6 +4,7 @@
 import type {
   AppData,
   BigThreeMax,
+  DietLog,
   Food,
   Goal,
   PlannedExercise,
@@ -105,21 +106,18 @@ export interface Macros {
   fat: number
 }
 
+export function dailyCalorieAdjustment(goal: Goal): number {
+  if (goal.type === 'maintain') return 0
+  const requested = Math.abs(goal.weeklyTargetDeltaKG * 7700 / 7)
+  const limited = Math.min(700, Math.max(150, requested))
+  return goal.type === 'bulk' ? limited : -limited
+}
+
 export const DietPlanner = {
   /** 根据目标计算每日热量与三大营养素（单位：克，热量：千卡） */
   targets(profile: UserProfile, goal: Goal, weightKG: number): Macros {
     const tdee = TDEE.tdee(profile, weightKG)
-    let kcal: number
-    switch (goal.type) {
-      case 'bulk':
-        kcal = tdee + 400
-        break
-      case 'cut':
-        kcal = tdee - 400
-        break
-      default:
-        kcal = tdee
-    }
+    const kcal = Math.max(1200, tdee + dailyCalorieAdjustment(goal))
     const protein = (goal.type === 'maintain' ? 1.6 : 2.0) * weightKG
     const fat = 0.9 * weightKG
     const carbKcal = Math.max(0, kcal - protein * 4 - fat * 9)
@@ -161,6 +159,108 @@ export const DietPlanner = {
     }
     return lines
   },
+}
+
+function nonNegativeSnapshot(value: number | null | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
+}
+
+/** 单条饮食日志的营养：优先使用记录时快照，旧日志按 foodName 回查食物库。 */
+export function nutritionForDietLog(log: DietLog, foods: Food[]): Macros {
+  const food = foods.find((item) => item.name === log.foodName)
+  const scale = log.amountG > 0 ? log.amountG / 100 : 0
+  const fallback: Macros = food == null
+    ? { kcal: 0, protein: 0, carb: 0, fat: 0 }
+    : {
+        kcal: food.kcalPer100g * scale,
+        protein: food.proteinPer100g * scale,
+        carb: food.carbPer100g * scale,
+        fat: food.fatPer100g * scale,
+      }
+  return {
+    kcal: nonNegativeSnapshot(log.kcal) ?? fallback.kcal,
+    protein: nonNegativeSnapshot(log.protein) ?? fallback.protein,
+    carb: nonNegativeSnapshot(log.carb) ?? fallback.carb,
+    fat: nonNegativeSnapshot(log.fat) ?? fallback.fat,
+  }
+}
+
+function isSameLocalDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+}
+
+/** 汇总指定本地自然日的饮食日志。 */
+export function summarizeDietLogsOnDate(
+  logs: DietLog[],
+  foods: Food[],
+  date: Date,
+): Macros {
+  return logs.filter((log) => isSameLocalDay(log.date, date)).reduce((sum, log) => {
+    const item = nutritionForDietLog(log, foods)
+    return {
+      kcal: sum.kcal + item.kcal,
+      protein: sum.protein + item.protein,
+      carb: sum.carb + item.carb,
+      fat: sum.fat + item.fat,
+    }
+  }, { kcal: 0, protein: 0, carb: 0, fat: 0 })
+}
+
+export interface DietTargetStrategy {
+  tdee: number
+  adjustmentKcal: number
+  targetKcal: number
+  label: string
+}
+
+/** 展示目标热量的计算策略，便于 Swift 端使用相同字段和文案。 */
+export function dietTargetStrategy(
+  profile: UserProfile,
+  goal: Goal,
+  weightKG: number,
+): DietTargetStrategy {
+  const tdee = TDEE.tdee(profile, weightKG)
+  const adjustmentKcal = dailyCalorieAdjustment(goal)
+  const targetKcal = Math.max(1200, tdee + adjustmentKcal)
+  const label = goal.type === 'bulk'
+    ? `增肌盈余 ${fmt0(adjustmentKcal)} 千卡/天`
+    : goal.type === 'cut'
+      ? `减脂缺口 ${fmt0(Math.abs(adjustmentKcal))} 千卡/天`
+      : '维持热量，不设置盈余或缺口'
+  return { tdee, adjustmentKcal, targetKcal, label }
+}
+
+/** 根据当天剩余热量与宏量营养给出方向明确、但不虚构精确食谱的建议。 */
+export function dietSuggestions(target: Macros, consumed: Macros): string[] {
+  const remaining = {
+    kcal: target.kcal - consumed.kcal,
+    protein: target.protein - consumed.protein,
+    carb: target.carb - consumed.carb,
+    fat: target.fat - consumed.fat,
+  }
+  const suggestions: string[] = []
+  if (remaining.kcal <= 0) {
+    suggestions.push('今日热量目标已达到，后续优先选择无糖饮品和低热量蔬菜。')
+  } else if (remaining.kcal < 250) {
+    suggestions.push('剩余热量不多，可选择一份低脂高蛋白食物或蔬菜，注意控制用油。')
+  } else {
+    suggestions.push(`尚余约 ${fmt0(remaining.kcal)} 千卡，可分到后续正餐或加餐，避免一次吃完。`)
+  }
+  if (remaining.protein > 15) {
+    suggestions.push('蛋白质仍有明显缺口，优先考虑鸡胸、鱼虾、瘦肉、蛋奶或豆制品。')
+  } else {
+    suggestions.push('蛋白质已接近目标，后续无需刻意叠加高蛋白食物。')
+  }
+  if (remaining.carb > 30 && remaining.kcal > 0) {
+    suggestions.push('碳水仍偏少，可从米饭、燕麦、薯类或全麦主食中补充。')
+  }
+  if (remaining.fat > 12 && remaining.kcal > 0) {
+    suggestions.push('脂肪仍有余量，可少量选择坚果、鱼类等脂肪来源，并把烹调用油计入。')
+  } else if (remaining.fat < 0) {
+    suggestions.push('脂肪已超出目标，后续尽量选择清蒸、水煮等少油做法。')
+  }
+  return suggestions.slice(0, 4)
 }
 
 // MARK: - 卡路里消耗估算

@@ -21,22 +21,106 @@ struct Macros: Equatable {
     var protein: Double
     var carb: Double
     var fat: Double
+
+    static let zero = Macros(kcal: 0, protein: 0, carb: 0, fat: 0)
+}
+
+struct DietStrategy: Equatable {
+    var tdee: Double
+    var dailyAdjustment: Double
+    var targetKcal: Double
+    var description: String
 }
 
 enum DietPlanner {
+    /// 由每周目标体重变化换算每日能量盈余/缺口，绝对值限制在 150...700 千卡。
+    static func strategy(profile: UserProfile, goal: Goal, weightKG: Double) -> DietStrategy {
+        let tdee = TDEE.tdee(profile: profile, weightKG: weightKG)
+        let delta = min(max(abs(goal.weeklyTargetDeltaKG) * 7700 / 7, 150), 700)
+        let adjustment: Double
+        let description: String
+        switch goal.type {
+        case .bulk:
+            adjustment = delta
+            description = String(format: "增肌盈余 %.0f 千卡/天", delta)
+        case .cut:
+            adjustment = -delta
+            description = String(format: "减脂缺口 %.0f 千卡/天", delta)
+        case .maintain:
+            adjustment = 0
+            description = "维持热量，不设置盈余或缺口"
+        }
+        return DietStrategy(tdee: tdee, dailyAdjustment: adjustment,
+                            targetKcal: max(1200, tdee + adjustment), description: description)
+    }
+
     /// 根据目标计算每日热量与三大营养素（单位：克，热量：千卡）
     static func targets(profile: UserProfile, goal: Goal, weightKG: Double) -> Macros {
-        let tdee = TDEE.tdee(profile: profile, weightKG: weightKG)
-        let kcal: Double
-        switch goal.type {
-        case .bulk: kcal = tdee + 400
-        case .cut: kcal = tdee - 400
-        case .maintain: kcal = tdee
-        }
+        let kcal = strategy(profile: profile, goal: goal, weightKG: weightKG).targetKcal
         let protein = (goal.type == .maintain ? 1.6 : 2.0) * weightKG
         let fat = 0.9 * weightKG
         let carbKcal = max(0, kcal - protein * 4 - fat * 9)
         return Macros(kcal: kcal, protein: protein, carb: carbKcal / 4, fat: fat)
+    }
+
+    /// 单条记录营养：有效快照优先，旧记录缺失快照时按食物名和克数计算。
+    static func nutrition(for log: DietLog, foods: [Food]) -> Macros {
+        let food = foods.first { $0.name == log.foodName }
+        let scale = log.amountG > 0 ? log.amountG / 100 : 0
+        let calculated = Macros(kcal: (food?.kcalPer100g ?? 0) * scale,
+                                protein: (food?.proteinPer100g ?? 0) * scale,
+                                carb: (food?.carbPer100g ?? 0) * scale,
+                                fat: (food?.fatPer100g ?? 0) * scale)
+        func snapshot(_ value: Double?, fallback: Double) -> Double {
+            guard let value, value.isFinite, value >= 0 else { return fallback }
+            return value
+        }
+        return Macros(kcal: snapshot(log.kcal, fallback: calculated.kcal),
+                      protein: snapshot(log.protein, fallback: calculated.protein),
+                      carb: snapshot(log.carb, fallback: calculated.carb),
+                      fat: snapshot(log.fat, fallback: calculated.fat))
+    }
+
+    static func summary(on date: Date, logs: [DietLog], foods: [Food],
+                        calendar: Calendar = .current) -> Macros {
+        logs.filter { calendar.isDate($0.date, inSameDayAs: date) }
+            .reduce(.zero) { total, log in
+                let item = nutrition(for: log, foods: foods)
+                return Macros(kcal: total.kcal + item.kcal,
+                              protein: total.protein + item.protein,
+                              carb: total.carb + item.carb,
+                              fat: total.fat + item.fat)
+            }
+    }
+
+    /// 根据当天剩余目标给出可直接执行的 2...4 条建议。
+    static func suggestions(target: Macros, consumed: Macros) -> [String] {
+        let remaining = Macros(kcal: target.kcal - consumed.kcal,
+                               protein: target.protein - consumed.protein,
+                               carb: target.carb - consumed.carb,
+                               fat: target.fat - consumed.fat)
+        var result: [String] = []
+        if remaining.kcal <= 0 {
+            result.append("今日热量目标已达到，后续优先选择无糖饮品和低热量蔬菜。")
+        } else if remaining.kcal < 250 {
+            result.append("剩余热量不多，可选择一份低脂高蛋白食物或蔬菜，注意控制用油。")
+        } else {
+            result.append(String(format: "尚余约 %.0f 千卡，可分到后续正餐或加餐，避免一次吃完。", remaining.kcal))
+        }
+        if remaining.protein > 15 {
+            result.append("蛋白质仍有明显缺口，优先考虑鸡胸、鱼虾、瘦肉、蛋奶或豆制品。")
+        } else {
+            result.append("蛋白质已接近目标，后续无需刻意叠加高蛋白食物。")
+        }
+        if remaining.carb > 30, remaining.kcal > 0 {
+            result.append("碳水仍偏少，可从米饭、燕麦、薯类或全麦主食中补充。")
+        }
+        if remaining.fat > 12, remaining.kcal > 0 {
+            result.append("脂肪仍有余量，可少量选择坚果、鱼类等脂肪来源，并把烹调用油计入。")
+        } else if remaining.fat < 0 {
+            result.append("脂肪已超出目标，后续尽量选择清蒸、水煮等少油做法。")
+        }
+        return Array(result.prefix(4))
     }
 
     /// 从食物库按目标克数简单搭配餐单（按 4 餐分配）

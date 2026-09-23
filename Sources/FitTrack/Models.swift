@@ -150,6 +150,13 @@ struct DietLog: Codable, Hashable, Identifiable {
     var date: Date
     var foodName: String
     var amountG: Double
+    var foodId: UUID? = nil
+    var kcal: Double? = nil
+    var protein: Double? = nil
+    var carb: Double? = nil
+    var fat: Double? = nil
+    var source: String? = nil
+    var imageName: String? = nil
 }
 
 // MARK: - AI 聊天
