@@ -296,55 +296,93 @@ struct SplitTemplate {
 
 enum TrainingPlanner {
 
+    // MARK: 固定模板
+
+    private static let push = SplitTemplate(name: "推", items: [
+        ("杠铃卧推", 4, 8), ("上斜哑铃卧推", 3, 10), ("站姿推举", 3, 8),
+        ("哑铃侧平举", 3, 15), ("绳索下压", 3, 12), ("仰卧臂屈伸", 3, 12),
+    ])
+    private static let pull = SplitTemplate(name: "拉", items: [
+        ("硬拉", 4, 6), ("引体向上", 3, 8), ("杠铃划船", 3, 10),
+        ("面拉", 3, 15), ("哑铃弯举", 3, 12), ("锤式弯举", 3, 12),
+    ])
+    private static let legsTemplate = SplitTemplate(name: "腿", items: [
+        ("杠铃深蹲", 4, 8), ("罗马尼亚硬拉", 3, 10), ("腿举", 3, 12),
+        ("腿弯举", 3, 12), ("站姿提踵", 4, 15),
+    ])
+    private static let upperA = SplitTemplate(name: "上肢A", items: [
+        ("杠铃卧推", 4, 8), ("坐姿划船", 4, 10), ("站姿推举", 4, 8),
+        ("引体向上", 3, 8), ("哑铃弯举", 3, 12), ("绳索下压", 3, 12),
+    ])
+    private static let lowerA = SplitTemplate(name: "下肢A", items: [
+        ("杠铃深蹲", 4, 8), ("罗马尼亚硬拉", 4, 10), ("腿举", 4, 12),
+        ("腿弯举", 3, 12), ("站姿提踵", 4, 15),
+    ])
+    private static let upperB = SplitTemplate(name: "上肢B", items: [
+        ("上斜哑铃卧推", 4, 10), ("高位下拉", 4, 10), ("杠铃划船", 4, 8),
+        ("哑铃侧平举", 3, 15), ("锤式弯举", 3, 12), ("仰卧臂屈伸", 3, 12),
+    ])
+    private static let lowerB = SplitTemplate(name: "下肢B", items: [
+        ("硬拉", 4, 6), ("保加利亚分腿蹲", 3, 10), ("腿屈伸", 3, 12),
+        ("臀桥", 3, 12), ("坐姿提踵", 4, 15),
+    ])
+    private static let full = SplitTemplate(name: "全身", items: [
+        ("杠铃深蹲", 3, 8), ("杠铃卧推", 3, 8), ("杠铃划船", 3, 8),
+        ("站姿推举", 3, 10), ("哑铃弯举", 2, 12), ("绳索下压", 2, 12),
+    ])
+
     /// 根据每周训练天数选择拆分模板
     static func splits(for days: Int) -> [SplitTemplate] {
-        let push = SplitTemplate(name: "推", items: [
-            ("杠铃卧推", 4, 8), ("上斜哑铃卧推", 3, 10), ("站姿推举", 3, 8),
-            ("哑铃侧平举", 3, 15), ("绳索下压", 3, 12), ("仰卧臂屈伸", 3, 12),
-        ])
-        let pull = SplitTemplate(name: "拉", items: [
-            ("硬拉", 4, 6), ("引体向上", 3, 8), ("杠铃划船", 3, 10),
-            ("面拉", 3, 15), ("哑铃弯举", 3, 12), ("锤式弯举", 3, 12),
-        ])
-        let legs = SplitTemplate(name: "腿", items: [
-            ("杠铃深蹲", 4, 8), ("罗马尼亚硬拉", 3, 10), ("腿举", 3, 12),
-            ("腿弯举", 3, 12), ("站姿提踵", 4, 15),
-        ])
-        let upperA = SplitTemplate(name: "上肢A", items: [
-            ("杠铃卧推", 4, 8), ("坐姿划船", 4, 10), ("站姿推举", 4, 8),
-            ("引体向上", 3, 8), ("哑铃弯举", 3, 12), ("绳索下压", 3, 12),
-        ])
-        let lowerA = SplitTemplate(name: "下肢A", items: [
-            ("杠铃深蹲", 4, 8), ("罗马尼亚硬拉", 4, 10), ("腿举", 4, 12),
-            ("腿弯举", 3, 12), ("站姿提踵", 4, 15),
-        ])
-        let upperB = SplitTemplate(name: "上肢B", items: [
-            ("上斜哑铃卧推", 4, 10), ("高位下拉", 4, 10), ("杠铃划船", 4, 8),
-            ("哑铃侧平举", 3, 15), ("锤式弯举", 3, 12), ("仰卧臂屈伸", 3, 12),
-        ])
-        let lowerB = SplitTemplate(name: "下肢B", items: [
-            ("硬拉", 4, 6), ("保加利亚分腿蹲", 3, 10), ("腿屈伸", 3, 12),
-            ("臀桥", 3, 12), ("坐姿提踵", 4, 15),
-        ])
-        let full = SplitTemplate(name: "全身", items: [
-            ("杠铃深蹲", 3, 8), ("杠铃卧推", 3, 8), ("杠铃划船", 3, 8),
-            ("站姿推举", 3, 10), ("哑铃弯举", 2, 12), ("绳索下压", 2, 12),
-        ])
-
         switch days {
         case ...2: return [full]
-        case 3: return [push, pull, legs]
+        case 3: return [push, pull, legsTemplate]
         case 4: return [upperA, lowerA, upperB, lowerB]
-        case 5: return [push, pull, legs, upperA, lowerA]
-        default: return [push, pull, legs, upperA, lowerA, full]
+        case 5: return [push, pull, legsTemplate, upperA, lowerA]
+        default: return [push, pull, legsTemplate, upperA, lowerA, full]
         }
     }
 
-    /// 生成某天的训练计划：按目标次数对应的强度自动配重
-    static func generatePlan(date: Date, data: AppData) -> PlannedWorkout {
-        let templates = splits(for: data.profile.trainingDaysPerWeek)
-        let weekday = Calendar.current.component(.weekday, from: date)
-        let split = templates[(weekday - 1) % templates.count]
+    // MARK: 指定主题（网页版同款：「生成今日计划」先选部位）
+
+    /// 用户指定的固定主题对应的模板：胸→推日、背→拉日、腿→腿日；其余（自定义）返回 nil
+    static func focusedTemplate(_ focus: String) -> SplitTemplate? {
+        switch focus.trimmingCharacters(in: .whitespaces) {
+        case "胸": return SplitTemplate(name: "胸", items: push.items)
+        case "背": return SplitTemplate(name: "背", items: pull.items)
+        case "腿": return SplitTemplate(name: "腿", items: legsTemplate.items)
+        default: return nil
+        }
+    }
+
+    /// 自定义主题：按关键词（如「肩+三头」「全身」）从动作库里挑动作组一套模板。
+    /// 一个都挑不出来时退回全身模板，保证离线也能生成非空计划。
+    static func customTemplate(_ focus: String, data: AppData) -> SplitTemplate {
+        let trimmed = focus.trimmingCharacters(in: .whitespaces)
+        let name = trimmed.isEmpty ? full.name : trimmed
+        let separators = CharacterSet(charactersIn: " +＋、,，/和").union(.whitespacesAndNewlines)
+        let keys = trimmed.components(separatedBy: separators).filter { !$0.isEmpty }
+        let picked = data.exercises.filter { e in
+            keys.contains { e.muscleGroup.contains($0) || e.name.contains($0) }
+        }
+        guard !picked.isEmpty else { return SplitTemplate(name: name, items: full.items) }
+        return SplitTemplate(name: name, items: picked.prefix(6).map { e in
+            // 多关节动作给 4×8，孤立动作 3×12，与固定模板的口径一致
+            let compound = CalorieEstimator.compoundExercises.contains(e.name)
+            return (name: e.name, sets: compound ? 4 : 3, reps: compound ? 8 : 12)
+        })
+    }
+
+    /// 生成某天的训练计划：按目标次数对应的强度自动配重。
+    /// 传了 focus（胸/背/腿/自定义名称）就按指定主题生成；不传则沿用按星期轮转拆分。
+    static func generatePlan(date: Date, data: AppData, focus: String? = nil) -> PlannedWorkout {
+        let split: SplitTemplate
+        if let focus, !focus.trimmingCharacters(in: .whitespaces).isEmpty {
+            split = focusedTemplate(focus) ?? customTemplate(focus, data: data)
+        } else {
+            let templates = splits(for: data.profile.trainingDaysPerWeek)
+            let weekday = Calendar.current.component(.weekday, from: date)
+            split = templates[(weekday - 1) % templates.count]
+        }
         let bodyWeight = data.bodyMetrics.sorted { $0.date < $1.date }.last?.weightKG ?? data.goal.targetWeightKG
         let exercises: [PlannedExercise] = split.items.map { item in
             let weight = StrengthModel.prescribedWeight(for: item.name, reps: item.reps,

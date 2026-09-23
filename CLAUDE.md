@@ -48,6 +48,7 @@ xcodebuild -project FitTrack.xcodeproj -scheme FitTrack -configuration Debug bui
 - 同步到「提醒事项」和导出 .ics 的动作行带重量与卡路里，文案统一走 `RemindersSync.swift` 的 `WorkoutText`，口径与 App 内 `PlanCard` 必须一致（改一处要改两处）。
 - 导出 JSON = `AppData` 原样展开 + 顶层 `chat` 键（聊天历史）。导入侧 `ImportSet` / `ImportBodyMetric` 同时接受 `weight_kg` 与 `weightKG`，所以 App 自己导出的文件能原样导回来。踩过：导出写的是驼峰 `weightKG`，导入 schema 要 `weight_kg`，两者对不上让「导出 JSON」产出的备份根本导不回来，直到 2026-09-20 才发现。
 - AI 可提议修改个人资料与今日计划：回复末尾附 `<<<UPDATES>>>{...}<<<END>>>` 块（`plan` 字段是今日计划的「完整动作列表」，整体替换；聊天上下文里会注入今日计划供模型对齐），`AIService.splitProposal` 解析剥离，聊天里渲染成确认卡片，用户点「应用」才经 `AppStore.plannedChanges` 校验夹紧后写入。绝不自动改。
-- 网页版独有的两处交互（Mac 版没有）：`GeneratePlanButton` 先选部位（胸/背/腿/自定义，`TrainingPlanner.focusedTemplate` / `customTemplate`）再生成；`PlanCard` 带「编辑」面板，可直接改今日计划的名称、动作、组次与重量（`AppStore.updatePlannedWorkout`）。
+- 计划的两处交互（网页版与 Mac 版行为一致，Mac 版 2026-09-23 才对齐）：生成计划先选部位（胸/背/腿/自定义，模板在 `TrainingPlanner.focusedTemplate` / `customTemplate`，原先 Mac 版是按星期固定轮转）；计划卡片带「编辑」面板，可直接改今日计划的名称、动作、组次与重量。
+- 两版同源的文案口径：配重「自重/60.0kg/待定」在 `PlannedExercise.weightLabel`（Mac）/ `engine.weightText`（网页版），计划变更摘要与预览都必须走它。
 - iOS target 能编过（`-scheme FitTrack-iOS -sdk iphonesimulator`，AppKit 代码有 `#if os(macOS)` 守卫），但从未在真机/模拟器跑过，也没有任何分发路径 —— 分发给朋友只有 macOS 版走 DMG。
 - 下一步候选：iOS 真机跑起来 + HealthKit 读体重；导入支持恢复 `profile`/`goal`/`bigThree`/`coachNotes`/`plannedWorkouts`（当前只恢复 workouts + bodyMetrics + chat，导出是完整备份但导入只覆盖这几类）。

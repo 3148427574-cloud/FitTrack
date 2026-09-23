@@ -4,10 +4,7 @@ import EventKit
 /// 同步到「提醒事项」/ 导出 .ics 时的文案。口径必须与 App 内 PlanCard 一致，
 /// 否则同一次训练在手机提醒里和 App 里显示的重量、卡路里会对不上。
 enum WorkoutText {
-    static func weightLabel(_ ex: PlannedExercise) -> String {
-        if CalorieEstimator.isBodyweight(ex.name) { return "自重" }
-        return ex.targetWeightKG > 0 ? String(format: "%.1fkg", ex.targetWeightKG) : "待定"
-    }
+    static func weightLabel(_ ex: PlannedExercise) -> String { ex.weightLabel }
 
     static func exerciseLine(_ ex: PlannedExercise, bodyWeightKG: Double, heightCM: Double) -> String {
         let kcal = CalorieEstimator.calories(for: ex, bodyWeightKG: bodyWeightKG, heightCM: heightCM)

@@ -128,8 +128,21 @@ final class AIService {
         }
         lines.append("动作库：\(exerciseLibrary(data))")
         lines.append("身体数据趋势：\(bodySummary(data))")
+        lines.append("今日训练计划（待完成）：\n\(todayPlanSummary(data))")
         lines.append("最近训练记录：\n\(workoutSummary(data))")
         return lines.joined(separator: "\n")
+    }
+
+    /// 今日待完成计划。聊天上下文靠它让模型知道「今天的计划长什么样」，
+    /// 也是模型提议 plan 变更（换动作/调组次重量）的唯一依据。
+    private static func todayPlanSummary(_ data: AppData, now: Date = Date()) -> String {
+        let todays = data.plannedWorkouts.filter {
+            $0.status == .planned && Calendar.current.isDate($0.date, inSameDayAs: now)
+        }
+        guard !todays.isEmpty else { return "今日暂无待完成计划" }
+        return todays.map { w in
+            "[\(w.splitName)]\n" + w.exercises.map { "- \($0.name) \($0.targetLabel)" }.joined(separator: "\n")
+        }.joined(separator: "\n")
     }
 
     /// 生效的三大项极限（手填优先，缺项用历史估算补齐）
@@ -191,12 +204,16 @@ final class AIService {
     private struct AIExercise: Codable { let name: String; let targetSets: Int; let targetReps: Int; let targetWeightKG: Double }
     private struct AIWorkoutPlan: Codable { let splitName: String; let reason: String; let exercises: [AIExercise] }
 
-    static func generatePlan(data: AppData, date: Date) async throws -> PlannedWorkout {
+    /// 按用户指定的训练主题生成计划。
+    /// focus 由「生成今日计划」的选择器给出：胸 / 背 / 腿，或自定义名称（如「肩+三头」）。
+    static func generatePlan(data: AppData, date: Date, focus: String) async throws -> PlannedWorkout {
         let weekday = Calendar.current.component(.weekday, from: date)
         let weekdayName = ["", "周日", "周一", "周二", "周三", "周四", "周五", "周六"][weekday]
+        let topic = focus.trimmingCharacters(in: .whitespaces)
 
         let system = """
         你是一名专业的增肌健身教练。根据用户的训练历史与身体数据变化，为「今天（\(weekdayName)）」生成一份训练计划。
+        用户今天指定练：\(topic)。splitName 必须原样填「\(topic)」，动作围绕这个主题从动作库中挑选（4-6 个，含必要的辅项）。
         要求：
         1. 目标重量 = 该动作 1RM × 目标次数对应强度（约 6 次 83%、8 次 79%、10 次 75%、12 次 71%、15 次 67%），四舍五入到 2.5kg 的整数倍。
         1RM 优先取该动作自己的历史记录；该动作没有历史数据时，用用户数据里的「三大项极限」按发力模式换算（推类看卧推、蹲类看深蹲、髋铰链看硬拉），再乘以次数强度。
@@ -210,21 +227,23 @@ final class AIService {
         """
 
         let text = try await send(messages: [(role: "user", content: contextString(data))], system: system, maxTokens: 4000, temperature: 0.3)
-        guard let plan = parsePlan(from: text, date: date, data: data) else {
+        guard let plan = parsePlan(from: text, date: date, data: data, focus: topic) else {
             throw AIServiceError.parse("无法解析计划 JSON")
         }
         return plan
     }
 
-    /// AI 生成失败或未配置 Key 时回退到固定模板
-    static func generatePlanWithFallback(data: AppData, date: Date) async -> PlannedWorkout {
-        if hasKey(), let p = try? await generatePlan(data: data, date: date) {
-            return p
+    /// AI 生成失败或未配置 Key 时回退到固定模板。
+    /// 返回值里带 usedAI：调用方要靠它告诉用户这份计划是 AI 出的还是模板兜的。
+    static func generatePlanWithFallback(data: AppData, date: Date, focus: String)
+        async -> (plan: PlannedWorkout, usedAI: Bool) {
+        if hasKey(), let p = try? await generatePlan(data: data, date: date, focus: focus) {
+            return (p, true)
         }
-        return TrainingPlanner.generatePlan(date: date, data: data)
+        return (TrainingPlanner.generatePlan(date: date, data: data, focus: focus), false)
     }
 
-    private static func parsePlan(from text: String, date: Date, data: AppData) -> PlannedWorkout? {
+    private static func parsePlan(from text: String, date: Date, data: AppData, focus: String) -> PlannedWorkout? {
         var s = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if let start = s.firstIndex(of: "{"), let end = s.lastIndex(of: "}"), start <= end {
             s = String(s[start...end])
@@ -242,7 +261,9 @@ final class AIService {
             return PlannedExercise(name: ex.name, targetSets: ex.targetSets,
                                    targetReps: ex.targetReps, targetWeightKG: weight)
         }
-        return PlannedWorkout(date: date, splitName: ai.splitName, exercises: exercises, note: ai.reason)
+        // 名称以用户选的为准：同一天重复生成同一个部位要能被判重
+        let splitName = focus.isEmpty ? ai.splitName : focus
+        return PlannedWorkout(date: date, splitName: splitName, exercises: exercises, note: ai.reason)
     }
 
     // MARK: 聊天
@@ -257,27 +278,32 @@ final class AIService {
         var proposalJSON: String?
     }
 
-    /// 让模型用哨兵块提出资料变更；App 收到后渲染成待确认卡片，用户点「应用」才写入
+    /// 让模型用哨兵块提出资料/计划变更；App 收到后渲染成待确认卡片，用户点「应用」才写入
     private static let updateProtocol = """
-    你可以在用户表达了长期的目标、身体数据或训练条件变化时，提出资料更新建议。
+    你可以在用户表达了长期的目标、身体数据或训练条件变化，或想调整今日训练计划时，提出更新建议。
     只在下列情况提议，其余情况一律只回答、不提议：
     - 用户明确了训练目标（增肌/减脂/维持）、目标体重或每周增减速度
     - 用户说明了自己的长期约束或偏好（例如每周只能练几天、某个动作做不了、偏好低次数力量训练）
     - 用户提供了新的身高/年龄/性别/活动量/三大项极限重量
+    - 用户想调整今日训练计划（换动作、加减动作、改组数/次数/重量、改计划名称），且上下文里能看到今日计划
 
     提议写法：在回复正文之后另起一行，输出下面这一整块。尖括号原样保留，不要用代码块包裹，这一块之后不要再写任何内容：
-    \(updateOpen){"profile":{"age":30,"heightCM":180,"trainingDaysPerWeek":5,"sex":"male","activityLevel":1.55},"goal":{"type":"bulk","targetWeightKG":78,"targetBodyFatPct":15,"weeklyTargetDeltaKG":0.3},"bigThree":{"benchKG":80,"squatKG":110,"deadliftKG":140},"notes":["偏好低次数力量训练，主项做 5x5"],"reason":"一句话说明建议这样改的理由"}\(updateClose)
+    \(updateOpen){"profile":{"age":30,"heightCM":180,"trainingDaysPerWeek":5,"sex":"male","activityLevel":1.55},"goal":{"type":"bulk","targetWeightKG":78,"targetBodyFatPct":15,"weeklyTargetDeltaKG":0.3},"bigThree":{"benchKG":80,"squatKG":110,"deadliftKG":140},"plan":{"splitName":"胸","exercises":[{"name":"上斜哑铃卧推","targetSets":4,"targetReps":10,"targetWeightKG":30},{"name":"绳索下压","targetSets":3,"targetReps":12,"targetWeightKG":25}]},"notes":["偏好低次数力量训练，主项做 5x5"],"reason":"一句话说明建议这样改的理由"}\(updateClose)
 
     字段说明：
     - 只写需要改的字段，其余省略；上面所有字段都可以省略。
+    - profile / goal / bigThree / notes 是长期个人资料；plan 只针对今日计划。
     - goal.type 只能取 bulk / cut / maintain；sex 只能取 male / female。
     - notes 会长期注入你的上下文，写用户的长期偏好或约束，每条一句话；已有的偏好不要重复提出。
+    - plan.exercises 必须是调整后今日计划的「完整动作列表」：没改动的动作也要原样带上（组数/次数/重量照抄上下文里的今日计划），按训练顺序排列；动作名称必须来自动作库；自重动作 targetWeightKG 填 0，其余四舍五入到 2.5kg 的整数倍。
+    - 上下文里没有今日计划（显示「今日暂无待完成计划」）时，不要提议 plan 变更，可以提示用户先生成今日计划。
     - 不需要改任何资料时，完全不输出这一块。
     """
 
     static func chat(history: [(role: String, content: String)], context: String) async throws -> ChatReply {
         let system = """
         你是一名专业的健身与营养教练，帮助用户进行增肌/减脂训练。你可以解答动作替换、动作规范、训练计划调整、饮食营养等问题。
+        用户也可以直接让你调整「今日训练计划」（换动作、加减动作、改组数/次数/重量），这类改动会以待确认卡片的形式给出，用户点「应用」后才写入。
         请结合下方用户真实数据给出个性化、简洁实用的建议，用简体中文回答。
 
         当前用户数据：

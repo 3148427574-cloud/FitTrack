@@ -108,7 +108,6 @@ struct GoalProgressView: View {
 
 struct TodayPlanView: View {
     @EnvironmentObject var store: AppStore
-    @State private var generating = false
     @State private var hint = ""
     private var bodyWeight: Double { store.currentBodyWeightKG }
     var body: some View {
@@ -116,18 +115,12 @@ struct TodayPlanView: View {
             HStack {
                 Text("今日训练计划").font(.title2.bold())
                 Spacer()
-                if generating { ProgressView().controlSize(.small) }
-                Button {
-                    generate()
-                } label: {
-                    Label("生成今日计划", systemImage: "sparkles")
-                }
-                .disabled(generating)
+                GeneratePlanButton { hint = $0 }
             }
             if !hint.isEmpty { Text(hint).font(.caption).foregroundStyle(.secondary) }
             let todays = store.planned(on: .now)
             if todays.isEmpty {
-                Text("今日暂无计划，点击右上角生成。").foregroundStyle(.secondary)
+                Text("今日暂无计划，点击右上角生成；生成后可在卡片上「编辑」。").foregroundStyle(.secondary)
             } else {
                 ForEach(todays) { w in
                     PlanCard(workout: w, bodyWeightKG: bodyWeight, heightCM: store.data.profile.heightCM)
@@ -135,41 +128,23 @@ struct TodayPlanView: View {
             }
         }
     }
-
-    private func generate() {
-        generating = true
-        hint = ""
-        let snapshot = store.data
-        Task {
-            let plan = await AIService.generatePlanWithFallback(data: snapshot, date: .now)
-            let usedAI = AIService.hasKey() && !plan.exercises.isEmpty
-            await MainActor.run {
-                let exists = store.data.plannedWorkouts.contains {
-                    Calendar.current.isDate($0.date, inSameDayAs: .now) && $0.splitName == plan.splitName && $0.status == .planned
-                }
-                if !exists {
-                    store.data.plannedWorkouts.append(plan)
-                    store.save()
-                    hint = usedAI ? "已由 AI 根据训练历史生成" : "未设置 API Key，使用固定模板生成（在「AI 助手」设置 Key 后可启用 AI 生成）"
-                } else {
-                    hint = "今日该计划已存在"
-                }
-                generating = false
-            }
-        }
-    }
 }
 
 struct PlanCard: View {
+    @EnvironmentObject var store: AppStore
     let workout: PlannedWorkout
     let bodyWeightKG: Double
     let heightCM: Double
+    @State private var editing = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(workout.splitName).font(.headline)
                 Spacer()
                 Text(workout.status.label).font(.caption).foregroundStyle(.secondary)
+                Button("编辑") { editing = true }
+                    .controlSize(.small)
             }
             if let note = workout.note, !note.isEmpty {
                 Text(note).font(.caption).foregroundStyle(.secondary)
@@ -178,7 +153,7 @@ struct PlanCard: View {
                 HStack {
                     Text(ex.name)
                     Spacer()
-                    Text("\(ex.targetSets)×\(ex.targetReps)  \(weightText(ex))  ·  \(String(format: "%.0f 千卡", CalorieEstimator.calories(for: ex, bodyWeightKG: bodyWeightKG, heightCM: heightCM)))")
+                    Text("\(ex.targetSets)×\(ex.targetReps)  \(ex.weightLabel)  ·  \(String(format: "%.0f 千卡", CalorieEstimator.calories(for: ex, bodyWeightKG: bodyWeightKG, heightCM: heightCM)))")
                         .foregroundStyle(.secondary)
                 }
                 .font(.callout)
@@ -188,11 +163,7 @@ struct PlanCard: View {
         }
         .padding(14)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color.gray.opacity(0.1)))
-    }
-
-    private func weightText(_ ex: PlannedExercise) -> String {
-        if CalorieEstimator.isBodyweight(ex.name) { return "自重" }
-        return ex.targetWeightKG > 0 ? String(format: "%.1fkg", ex.targetWeightKG) : "待定"
+        .sheet(isPresented: $editing) { PlanEditorView(workout: workout) }
     }
 
     /// 让身高的行程修正可见：这是估算模型里的假设，不是实测值
@@ -204,6 +175,214 @@ struct PlanCard: View {
     }
 }
 
+/// 今日计划的可编辑面板：改名称、增删动作、改组数/次数/重量。
+/// 不做额外的配重推导：用户手填多少就是多少，只在换成自重动作时把重量清零。
+struct PlanEditorView: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.dismiss) private var dismiss
+    let workout: PlannedWorkout
+
+    @State private var splitName: String
+    @State private var rows: [PlannedExercise]
+
+    init(workout: PlannedWorkout) {
+        self.workout = workout
+        _splitName = State(initialValue: workout.splitName)
+        _rows = State(initialValue: workout.exercises)
+    }
+
+    /// 计划里可能有动作库外的动作（比如从 Mac 版导入的），一并给个选项，免得下拉框把它吃掉
+    private var exerciseNames: [String] {
+        var names = store.data.exercises.map { $0.name }
+        for r in rows where !names.contains(r.name) { names.append(r.name) }
+        return names
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("编辑今日计划").font(.headline)
+
+            HStack {
+                Text("计划名称").foregroundStyle(.secondary)
+                TextField("胸 / 背 / 腿 / 自定名称", text: $splitName)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach($rows) { $row in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Picker("动作", selection: $row.name) {
+                                    ForEach(exerciseNames, id: \.self) { Text($0).tag($0) }
+                                }
+                                .labelsHidden()
+                                Button {
+                                    rows.removeAll { $0.id == row.id }
+                                } label: {
+                                    Image(systemName: "trash")
+                                }
+                                .buttonStyle(.borderless)
+                                .foregroundStyle(.red)
+                            }
+                            HStack(spacing: 10) {
+                                Text("组数")
+                                TextField("", value: $row.targetSets, format: .number).frame(width: 46)
+                                Text("次数")
+                                TextField("", value: $row.targetReps, format: .number).frame(width: 46)
+                                Text("重量")
+                                TextField("", value: $row.targetWeightKG, format: .number).frame(width: 64)
+                                Text("kg")
+                            }
+                            .font(.callout)
+                        }
+                        .padding(10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.08)))
+                        .onChange(of: row.name) { _, newValue in
+                            if CalorieEstimator.isBodyweight(newValue) { row.targetWeightKG = 0 }
+                        }
+                    }
+                }
+            }
+            .frame(maxHeight: 320)
+
+            HStack {
+                Button {
+                    addRow()
+                } label: {
+                    Label("添加动作", systemImage: "plus")
+                }
+                if rows.isEmpty {
+                    Text("至少保留一个动作才能保存").font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("取消") { dismiss() }
+                Button("保存") { save() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(rows.isEmpty)
+            }
+        }
+        .padding(20)
+        .frame(width: 460)
+    }
+
+    private func addRow() {
+        let name = store.data.exercises.first?.name ?? "杠铃卧推"
+        let reps = 10
+        let weight = CalorieEstimator.isBodyweight(name)
+            ? 0
+            : StrengthModel.prescribedWeight(for: name, reps: reps, data: store.data,
+                                             bodyWeightKG: store.currentBodyWeightKG)
+        rows.append(PlannedExercise(name: name, targetSets: 3, targetReps: reps,
+                                    targetWeightKG: max(0, weight)))
+    }
+
+    private func save() {
+        let name = splitName.trimmingCharacters(in: .whitespaces)
+        let cleaned = rows.map { r -> PlannedExercise in
+            var c = r
+            c.targetSets = r.targetSets.clamped(to: 1...10)
+            c.targetReps = r.targetReps.clamped(to: 1...30)
+            c.targetWeightKG = max(0, CalorieEstimator.isBodyweight(r.name) ? 0 : r.targetWeightKG)
+            return c
+        }
+        store.updatePlannedWorkout(id: workout.id,
+                                   splitName: name.isEmpty ? workout.splitName : name,
+                                   exercises: cleaned)
+        dismiss()
+    }
+}
+
+/// 生成今日计划的入口：先选部位（胸/背/腿/自定义），再交给 AI 或固定模板。
+/// 网页版同款；Mac 版原来是按星期固定轮转，没有选择。
+struct GeneratePlanButton: View {
+    @EnvironmentObject var store: AppStore
+    /// 结果提示：由调用方决定显示在哪儿
+    var onResult: (String) -> Void = { _ in }
+
+    @State private var showPicker = false
+    @State private var focus: SplitFocus = .chest
+    @State private var custom = ""
+    @State private var busy = false
+
+    private var chosen: String {
+        focus == .custom ? custom.trimmingCharacters(in: .whitespaces) : focus.rawValue
+    }
+
+    var body: some View {
+        Button {
+            showPicker = true
+        } label: {
+            Label("生成今日计划", systemImage: "sparkles")
+        }
+        .disabled(busy)
+        .sheet(isPresented: $showPicker) { picker }
+    }
+
+    private var picker: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("生成今日计划").font(.headline)
+            Text("选择今天练什么").font(.caption).foregroundStyle(.secondary)
+
+            Picker("训练主题", selection: $focus) {
+                ForEach(SplitFocus.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+
+            if focus == .custom {
+                TextField("自定义内容（部位或动作，如「肩+三头」「全身」）", text: $custom)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            Text(AIService.hasKey()
+                 ? "将结合训练历史与身体数据，由 AI 生成动作与配重。"
+                 : "未设置 API Key：将用固定模板生成（在「AI 助手」页设置 Key 后可启用 AI 生成）。")
+                .font(.caption).foregroundStyle(.secondary)
+
+            if busy {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("正在生成…").font(.caption)
+                }
+            }
+
+            HStack {
+                Spacer()
+                Button("取消") { showPicker = false }
+                Button("生成") { generate() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(busy || chosen.isEmpty)
+            }
+        }
+        .padding(20)
+        .frame(width: 420)
+    }
+
+    private func generate() {
+        let topic = chosen
+        guard !topic.isEmpty, !busy else { return }
+        busy = true
+        let snapshot = store.data
+        Task {
+            let result = await AIService.generatePlanWithFallback(data: snapshot, date: .now, focus: topic)
+            await MainActor.run {
+                let added = store.addPlannedWorkout(result.plan)
+                busy = false
+                showPicker = false
+                if !added {
+                    onResult("今日已有「\(topic)」计划，未重复添加")
+                } else {
+                    onResult(result.usedAI
+                             ? "已由 AI 生成「\(topic)」计划"
+                             : "未设置 API Key，已用固定模板生成「\(topic)」计划（在「AI 助手」页设置 Key 后可启用 AI 生成）")
+                }
+            }
+        }
+    }
+}
+
 // MARK: - 训练
 
 struct TrainingView: View {
@@ -211,7 +390,7 @@ struct TrainingView: View {
     @State private var syncMessage = ""
     @State private var showingAddLog = false
     @State private var exportingICS = false
-    @State private var generatingPlan = false
+    @State private var planHint = ""
     @State private var reminderObserver: NSObjectProtocol?
     @State private var showClearAllConfirm = false
     @State private var showDeleteConfirm = false
@@ -222,16 +401,15 @@ struct TrainingView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Text("训练").font(.largeTitle.bold())
                 HStack(spacing: 12) {
-                    Button { generateToday() } label: { Label("生成今日计划", systemImage: "sparkles") }
-                        .disabled(generatingPlan)
+                    GeneratePlanButton { planHint = $0 }
                     Button { Task { @MainActor in await sync() } } label: { Label("同步到提醒事项", systemImage: "bell.badge") }
                     Button { Task { await refreshFromReminders() } } label: { Label("刷新状态", systemImage: "arrow.triangle.2.circlepath") }
                     Button { exportingICS = true } label: { Label("导出 .ics 日历", systemImage: "calendar.badge.plus") }
                     Spacer()
                     Button { showingAddLog = true } label: { Label("记录一次训练", systemImage: "plus") }
                 }
-                if generatingPlan {
-                    HStack(spacing: 8) { ProgressView().controlSize(.small); Text("AI 正在生成计划…").font(.callout).foregroundStyle(.secondary) }
+                if !planHint.isEmpty {
+                    Text(planHint).font(.callout).foregroundStyle(.secondary)
                 }
                 if !syncMessage.isEmpty {
                     Text(syncMessage).font(.callout).foregroundStyle(.secondary)
@@ -330,24 +508,6 @@ struct TrainingView: View {
 
     private func upcomingICS() -> [PlannedWorkout] {
         store.data.plannedWorkouts.filter { $0.status == .planned }.sorted { $0.date < $1.date }
-    }
-
-    private func generateToday() {
-        generatingPlan = true
-        let snapshot = store.data
-        Task {
-            let plan = await AIService.generatePlanWithFallback(data: snapshot, date: .now)
-            await MainActor.run {
-                let exists = store.data.plannedWorkouts.contains {
-                    Calendar.current.isDate($0.date, inSameDayAs: .now) && $0.splitName == plan.splitName && $0.status == .planned
-                }
-                if !exists {
-                    store.data.plannedWorkouts.append(plan)
-                    store.save()
-                }
-                generatingPlan = false
-            }
-        }
     }
 
     private func complete(_ w: PlannedWorkout) {
@@ -555,7 +715,7 @@ struct AIChatView: View {
         guard store.chatMessages.isEmpty else { return }
         if AIService.hasKey() {
             store.appendChat(ChatMessage(role: "assistant",
-                content: "你好！我是你的 AI 健身助手，可以看到你的训练历史与身体数据。可以问我动作替换、动作规范、计划调整或饮食问题，例如：“杠铃卧推肩膀不舒服，能换成什么动作？”\n\n也可以直接告诉我你的目标或限制（比如“我想增肌增强力量，每周只能练 4 天”），我会给出资料更新建议，你确认后才会写入。"))
+                content: "你好！我是你的 AI 健身助手，可以看到你的训练历史、身体数据与今日计划。可以问我动作替换、动作规范、计划调整或饮食问题，例如：“杠铃卧推肩膀不舒服，能换成什么动作？”\n\n也可以直接让我改今日计划（比如“把今天的卧推换成哑铃卧推”“深蹲减一组”），或告诉我你的长期目标与限制（比如“我想增肌增强力量，每周只能练 4 天”）。这些改动都会先给出待确认卡片，你点「应用」后才会写入。"))
         }
     }
 
@@ -604,10 +764,11 @@ struct ProposalCard: View {
 
     var body: some View {
         let pending = AppStore.plannedChanges(payload, in: store.data).changes
+        let scope = proposalScope(payload)
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: status == "applied" ? "checkmark.circle.fill" : "wand.and.stars")
-                Text(status == "applied" ? "已应用到个人资料" : "建议更新个人资料").font(.caption.bold())
+                Text(status == "applied" ? "已应用到\(scope)" : "建议更新\(scope)").font(.caption.bold())
             }
             .foregroundStyle(status == "applied" ? .green : .secondary)
 
@@ -644,6 +805,15 @@ struct ProposalCard: View {
             .fill((status == "applied" ? Color.green : Color.accentColor).opacity(0.08)))
         .overlay(RoundedRectangle(cornerRadius: 10)
             .stroke((status == "applied" ? Color.green : Color.accentColor).opacity(0.3)))
+    }
+
+    /// 这张卡片会改到哪儿：长期个人资料、今日计划，还是两者都有
+    private func proposalScope(_ p: AIUpdatePayload) -> String {
+        let personal = p.profile != nil || p.goal != nil || p.bigThree != nil
+            || !(p.notes ?? []).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.isEmpty
+        let plan = p.plan?.hasAnyChange ?? false
+        if plan && personal { return "个人资料与今日计划" }
+        return plan ? "今日训练计划" : "个人资料"
     }
 }
 

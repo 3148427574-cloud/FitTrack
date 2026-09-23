@@ -25,6 +25,16 @@ enum WorkoutStatus: String, Codable {
     }
 }
 
+/// 「生成今日计划」时可选的训练主题：前三个固定，第四个由用户输入名称
+enum SplitFocus: String, CaseIterable, Identifiable {
+    case chest = "胸"
+    case back = "背"
+    case legs = "腿"
+    case custom = "自定义"
+
+    var id: String { rawValue }
+}
+
 // MARK: - 训练相关
 
 struct SetEntry: Codable, Hashable {
@@ -64,6 +74,18 @@ struct PlannedWorkout: Codable, Hashable, Identifiable {
     var status: WorkoutStatus = .planned
     var note: String?
     var reminderID: String?
+}
+
+extension PlannedExercise {
+    /// 配重文案：「自重」/「60.0kg」/「待定」。
+    /// 计划卡片、.ics 导出与 AI 计划变更摘要都走这里，口径只此一份。
+    var weightLabel: String {
+        if CalorieEstimator.isBodyweight(name) { return "自重" }
+        return targetWeightKG > 0 ? String(format: "%.1fkg", targetWeightKG) : "待定"
+    }
+
+    /// 「4×8 60.0kg」/「4×8 自重」
+    var targetLabel: String { "\(targetSets)×\(targetReps) \(weightLabel)" }
 }
 
 // MARK: - 身体数据
@@ -169,9 +191,34 @@ struct AIUpdatePayload: Codable {
         var deadliftKG: Double?
     }
 
+    /// AI 对今日训练计划的修改。exercises 是调整后的「完整动作列表」——
+    /// 未改动的动作也要原样带上，落地时整体替换，预览卡片展示的就是最终结果。
+    struct PlanPatch: Codable {
+        struct ExercisePatch: Codable {
+            /// 用可选：模型漏写或写坏一条时，不至于把整个载荷（含资料变更）一起丢掉
+            var name: String?
+            var targetSets: Int?
+            var targetReps: Int?
+            var targetWeightKG: Double?
+        }
+
+        /// 新的计划名称（如「胸」「肩+三头」）；nil 表示不改名
+        var splitName: String?
+        /// 调整后的完整动作列表；nil 或空数组表示不改动作
+        var exercises: [ExercisePatch]?
+
+        /// 无名条目会被落地逻辑丢弃，不算一次改动
+        var exerciseCount: Int {
+            (exercises ?? []).filter { !($0.name ?? "").trimmingCharacters(in: .whitespaces).isEmpty }.count
+        }
+        var hasAnyChange: Bool { splitName != nil || exerciseCount > 0 }
+    }
+
     var profile: ProfilePatch?
     var goal: GoalPatch?
     var bigThree: BigThreePatch?
+    /// 今日训练计划的调整（与网页版同一套协议）
+    var plan: PlanPatch?
     /// 追加到 AppData.coachNotes 的长期偏好/约束
     var notes: [String]?
     /// 一句话说明改动理由，显示在确认卡片上
@@ -184,6 +231,7 @@ struct AIUpdatePayload: Codable {
             || any(goal) { $0.type != nil || $0.targetWeightKG != nil
                           || $0.targetBodyFatPct != nil || $0.weeklyTargetDeltaKG != nil }
             || any(bigThree) { $0.benchKG != nil || $0.squatKG != nil || $0.deadliftKG != nil }
+            || any(plan) { $0.hasAnyChange }
             || !(notes ?? []).filter({ !$0.trimmingCharacters(in: .whitespaces).isEmpty }).isEmpty
     }
 }

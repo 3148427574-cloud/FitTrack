@@ -88,7 +88,9 @@ final class AppStore: ObservableObject {
 
     /// 纯函数版：逐字段白名单校验 + 范围夹紧，返回变更摘要与改好的数据副本。
     /// 聊天里的确认卡片用它做预览，点「应用」时走同一个函数，保证预览与落地一致。
-    static func plannedChanges(_ payload: AIUpdatePayload, in data: AppData)
+    ///
+    /// `now` 只影响「今日计划」变更挑哪一天的计划；默认取当前时间。
+    static func plannedChanges(_ payload: AIUpdatePayload, in data: AppData, now: Date = Date())
         -> (changes: [String], updated: AppData) {
         var out = data
         var changes: [String] = []
@@ -186,7 +188,114 @@ final class AppStore: ObservableObject {
             if !notes.isEmpty { out.coachNotes = notes }
         }
 
+        // 今日计划变更：只有真的改到东西才替换数组
+        if let plan = payload.plan {
+            let r = applyPlanPatch(plan, in: out, now: now)
+            if let workouts = r.workouts {
+                out.plannedWorkouts = workouts
+                changes.append(contentsOf: r.changes)
+            }
+        }
+
         return (changes, out)
+    }
+
+    // MARK: - 今日计划变更（AI 聊天用）
+
+    /// 落地 AI 的今日计划变更，返回变更摘要与新的 plannedWorkouts（没改到东西时为 nil）。
+    ///
+    /// 只动「今天的、状态仍为 planned」的计划：已完成的计划改了也不会同步回训练历史，容易误导。
+    /// patch.splitName 命中今天的某条计划名时改那条（用来在一天多条计划时点名），
+    /// 没命中就是改名，落到今天的第一条计划上。
+    private static func applyPlanPatch(_ patch: AIUpdatePayload.PlanPatch, in data: AppData, now: Date)
+        -> (changes: [String], workouts: [PlannedWorkout]?) {
+        let todays = data.plannedWorkouts.filter {
+            $0.status == .planned && Calendar.current.isDate($0.date, inSameDayAs: now)
+        }
+        let named = patch.splitName.flatMap { raw in
+            todays.first { $0.splitName == raw.trimmingCharacters(in: .whitespaces) }
+        }
+        guard let target = named ?? todays.first else { return ([], nil) }
+
+        var changes: [String] = []
+        var splitName = target.splitName
+        if let raw = patch.splitName {
+            let v = String(raw.trimmingCharacters(in: .whitespaces).prefix(30))
+            if !v.isEmpty, v != splitName {
+                changes.append("计划名称：\(splitName) → \(v)")
+                splitName = v
+            }
+        }
+
+        var exercises = target.exercises
+        if let incoming = patch.exercises, !incoming.isEmpty {
+            let next = planExercises(incoming, previous: target.exercises, data: data)
+            if !next.isEmpty {
+                changes.append(contentsOf: planDiff(previous: target.exercises, next: next))
+                exercises = next
+            }
+        }
+
+        guard !changes.isEmpty else { return ([], nil) }
+        let workouts = data.plannedWorkouts.map { w -> PlannedWorkout in
+            guard w.id == target.id else { return w }
+            var copy = w
+            copy.splitName = splitName
+            copy.exercises = exercises
+            return copy
+        }
+        return (changes, workouts)
+    }
+
+    /// 把 AI 给的动作列表补成可落地的 PlannedExercise：缺的组次/重量按旧值或配重链兜底
+    private static func planExercises(_ incoming: [AIUpdatePayload.PlanPatch.ExercisePatch],
+                                      previous: [PlannedExercise], data: AppData) -> [PlannedExercise] {
+        let bodyWeight = data.bodyMetrics.sorted { $0.date < $1.date }.last?.weightKG ?? data.goal.targetWeightKG
+        let prevByName = Dictionary(previous.map { ($0.name, $0) }, uniquingKeysWith: { a, _ in a })
+        var out: [PlannedExercise] = []
+        for raw in incoming {
+            let name = (raw.name ?? "").trimmingCharacters(in: .whitespaces)
+            guard !name.isEmpty else { continue }
+            let prev = prevByName[name]
+            let targetSets = (raw.targetSets ?? prev?.targetSets ?? 3).clamped(to: 1...10)
+            let targetReps = (raw.targetReps ?? prev?.targetReps ?? 10).clamped(to: 1...30)
+            let targetWeightKG: Double
+            if CalorieEstimator.isBodyweight(name) {
+                targetWeightKG = 0
+            } else if let rawWeight = raw.targetWeightKG, rawWeight > 0 {
+                targetWeightKG = StrengthModel.roundToPlate(rawWeight.clamped(to: 0...400))
+            } else if let prev, prev.targetWeightKG > 0 {
+                // 模型漏填重量：同名动作沿用原配重，新动作走配重优先级链
+                targetWeightKG = prev.targetWeightKG
+            } else {
+                targetWeightKG = StrengthModel.prescribedWeight(for: name, reps: targetReps,
+                                                               data: data, bodyWeightKG: bodyWeight)
+            }
+            out.append(PlannedExercise(id: prev?.id ?? UUID(), name: name,
+                                       targetSets: targetSets, targetReps: targetReps,
+                                       targetWeightKG: max(0, targetWeightKG)))
+        }
+        return out
+    }
+
+    /// 新旧动作列表的差异摘要：新增 / 移除 / 组次重量的变化
+    private static func planDiff(previous: [PlannedExercise], next: [PlannedExercise]) -> [String] {
+        var diff: [String] = []
+        let prevByName = Dictionary(previous.map { ($0.name, $0) }, uniquingKeysWith: { a, _ in a })
+        let nextNames = Set(next.map { $0.name })
+        for e in next {
+            guard let prev = prevByName[e.name] else {
+                diff.append("新增动作：\(e.name) \(e.targetLabel)")
+                continue
+            }
+            if prev.targetLabel != e.targetLabel {
+                diff.append("\(e.name)：\(prev.targetLabel) → \(e.targetLabel)")
+            }
+        }
+        for e in previous where !nextNames.contains(e.name) {
+            diff.append("移除动作：\(e.name)")
+        }
+        return diff
     }
 
     static func decodePayload(_ json: String) -> AIUpdatePayload? {
@@ -222,6 +331,27 @@ final class AppStore: ObservableObject {
         v == v.rounded() ? String(format: "%.0f", v) : String(format: "%.1f", v)
     }
     private static func fmt2(_ v: Double) -> String { String(format: "%.2f", v) }
+
+    /// 追加计划；同日同拆分且仍待完成视为重复，返回是否写入
+    @discardableResult
+    func addPlannedWorkout(_ w: PlannedWorkout) -> Bool {
+        let exists = data.plannedWorkouts.contains {
+            Calendar.current.isDate($0.date, inSameDayAs: w.date)
+                && $0.splitName == w.splitName && $0.status == .planned
+        }
+        guard !exists else { return false }
+        data.plannedWorkouts.append(w)
+        save()
+        return true
+    }
+
+    /// 手动编辑计划（计划卡片上的「编辑」面板保存时调用）
+    func updatePlannedWorkout(id: UUID, splitName: String, exercises: [PlannedExercise]) {
+        guard let idx = data.plannedWorkouts.firstIndex(where: { $0.id == id }) else { return }
+        data.plannedWorkouts[idx].splitName = splitName
+        data.plannedWorkouts[idx].exercises = exercises
+        save()
+    }
 
     func clearWorkouts() {
         guard !data.workouts.isEmpty else { return }
