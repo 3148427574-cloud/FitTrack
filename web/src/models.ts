@@ -4,6 +4,8 @@
 
 // MARK: - 枚举
 
+export const CURRENT_SCHEMA_VERSION = 2
+
 export type GoalType = 'bulk' | 'cut' | 'maintain'
 
 export const GOAL_TYPES: GoalType[] = ['bulk', 'cut', 'maintain']
@@ -244,6 +246,9 @@ export function payloadHasAnyChange(p: AIUpdatePayload): boolean {
 // MARK: - 根数据
 
 export interface AppData {
+  schemaVersion?: number | null
+  createdAt?: Date | null
+  updatedAt?: Date | null
   profile: UserProfile
   goal: Goal
   workouts: WorkoutSession[]
@@ -260,6 +265,7 @@ export interface AppData {
 
 export function emptyAppData(): AppData {
   return {
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     profile: { sex: 'male', age: 25, heightCM: 175, activityLevel: 1.55, trainingDaysPerWeek: 4 },
     goal: { type: 'bulk', targetWeightKG: 75, targetBodyFatPct: null, weeklyTargetDeltaKG: 0.25 },
     workouts: [],
@@ -283,9 +289,11 @@ export function toISO(d: Date): string {
   return d.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
-/** 唯一的日期字段名就是 `date`，据此还原，避免误伤内容里像日期的字符串 */
+const DATE_FIELDS = new Set(['date', 'createdAt', 'updatedAt', 'deletedAt', 'evaluatedAt', 'decidedAt'])
+
+/** 只还原模型约定的日期字段，避免误伤内容里像日期的字符串。 */
 function reviveDates(_key: string, value: unknown): unknown {
-  if (_key === 'date' && typeof value === 'string') {
+  if (DATE_FIELDS.has(_key) && typeof value === 'string') {
     const d = new Date(value)
     return Number.isNaN(d.getTime()) ? value : d
   }

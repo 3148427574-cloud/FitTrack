@@ -11,8 +11,10 @@
 		1C93291C2E37E0C1D597AF60 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0458861144B96E2B1CDCAF /* Engine.swift */; };
 		257BAADC1C3EEB1345CB44C0 /* FitTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FEAD6588A5D5A867DEF4E2 /* FitTrackApp.swift */; };
 		415B65415C25FC86DFE315B2 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D193D1B397B4A7657FBDFBD1 /* Importer.swift */; };
+		46B025EDD2399BB7F6B14E4F /* BackupRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19EC8E38EB6E54022AC50774 /* BackupRecovery.swift */; };
 		4A46BF0B5B3AC02AA84A73A6 /* FitTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FEAD6588A5D5A867DEF4E2 /* FitTrackApp.swift */; };
 		51B1D6E4FE27239D9E4D1AFF /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCCEA737CBBB74F53CA5CB8 /* AppStore.swift */; };
+		6D95B348C7D9DEDB79E19D9C /* BackupRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19EC8E38EB6E54022AC50774 /* BackupRecovery.swift */; };
 		6D970A69E783F15F39B4868B /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0458861144B96E2B1CDCAF /* Engine.swift */; };
 		6F8AD19B852A0BCF66ECDFE9 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74298E0A8AA2A16DFC27FAF /* Models.swift */; };
 		7A6296E7243DFA47AB5D6DD9 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D415014C2958613D2BE6551B /* AIService.swift */; };
@@ -29,6 +31,7 @@
 		030EF8E1821A65A1AE576128 /* RemindersSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersSync.swift; sourceTree = "<group>"; };
 		053108AC8BBB9B65EBA44741 /* FitTrack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BC854E9D910E76D98CA58F8 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		19EC8E38EB6E54022AC50774 /* BackupRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecovery.swift; sourceTree = "<group>"; };
 		1FCCEA737CBBB74F53CA5CB8 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
 		3C0458861144B96E2B1CDCAF /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
 		5847BB7E84E86C7779F38E57 /* FitTrack-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "FitTrack-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -69,6 +72,7 @@
 			children = (
 				D415014C2958613D2BE6551B /* AIService.swift */,
 				1FCCEA737CBBB74F53CA5CB8 /* AppStore.swift */,
+				19EC8E38EB6E54022AC50774 /* BackupRecovery.swift */,
 				3C0458861144B96E2B1CDCAF /* Engine.swift */,
 				B4FEAD6588A5D5A867DEF4E2 /* FitTrackApp.swift */,
 				D193D1B397B4A7657FBDFBD1 /* Importer.swift */,
@@ -160,6 +164,7 @@
 			files = (
 				7A6296E7243DFA47AB5D6DD9 /* AIService.swift in Sources */,
 				F9539F953DD3F2C35C3E8C9F /* AppStore.swift in Sources */,
+				6D95B348C7D9DEDB79E19D9C /* BackupRecovery.swift in Sources */,
 				6D970A69E783F15F39B4868B /* Engine.swift in Sources */,
 				257BAADC1C3EEB1345CB44C0 /* FitTrackApp.swift in Sources */,
 				415B65415C25FC86DFE315B2 /* Importer.swift in Sources */,
@@ -175,6 +180,7 @@
 			files = (
 				A1B7F30A5B182482527E0956 /* AIService.swift in Sources */,
 				51B1D6E4FE27239D9E4D1AFF /* AppStore.swift in Sources */,
+				46B025EDD2399BB7F6B14E4F /* BackupRecovery.swift in Sources */,
 				1C93291C2E37E0C1D597AF60 /* Engine.swift in Sources */,
 				4A46BF0B5B3AC02AA84A73A6 /* FitTrackApp.swift in Sources */,
 				9D1702CD08816B262291828F /* Importer.swift in Sources */,

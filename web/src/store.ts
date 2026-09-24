@@ -4,6 +4,7 @@
 //
 // 与 Mac 版的差异：API Key 也睡在 localStorage（浏览器里没有 Keychain 的等价物）。
 
+import type { RestorePlan, RestoreStats } from './importer'
 import {
   BIG_THREE_LABELS,
   BIG_THREE_LIFTS,
@@ -18,6 +19,7 @@ import {
   type BigThreeLift,
 } from './engine'
 import {
+  CURRENT_SCHEMA_VERSION,
   GOAL_LABELS,
   SEED_EXERCISES,
   SEED_FOODS,
@@ -46,6 +48,7 @@ import {
 
 const DATA_KEY = 'fittrack.data'
 const CHAT_KEY = 'fittrack.chat'
+const BACKUP_KEY = 'fittrack.restoreBackup'
 const API_KEY_KEY = 'fittrack.apiKey'
 const MAX_CHAT = 40 // 与 Mac 版 Views.swift 的 maxHistory 一致
 
@@ -59,11 +62,21 @@ function read(key: string): string | null {
   }
 }
 
-function write(key: string, value: string): void {
+function write(key: string, value: string): boolean {
   try {
     localStorage.setItem(key, value)
+    return true
   } catch {
-    // 配额满 / 隐私模式：内存里的数据仍然有效，不因为写不进去就崩
+    return false
+  }
+}
+
+function remove(key: string): boolean {
+  try {
+    localStorage.removeItem(key)
+    return true
+  } catch {
+    return false
   }
 }
 
@@ -79,6 +92,9 @@ function normalizeData(raw: unknown): AppData {
   const r = raw as Record<string, any>
   const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : [])
   return {
+    schemaVersion: typeof r.schemaVersion === 'number' ? r.schemaVersion : CURRENT_SCHEMA_VERSION,
+    createdAt: r.createdAt ?? null,
+    updatedAt: r.updatedAt ?? null,
     profile: { ...base.profile, ...(r.profile ?? {}) },
     goal: { ...base.goal, ...(r.goal ?? {}) },
     workouts: arr<WorkoutSession>(r.workouts),
@@ -125,9 +141,11 @@ class AppStore {
     const rawData = read(DATA_KEY)
     const parsed = rawData == null ? null : safeParse(rawData)
     const loaded = parsed == null ? emptyAppData() : normalizeData(parsed)
-    // 首次运行 / 备份里没有动作库食物库时补种子，与 Mac 版 init 一致
-    if (loaded.exercises.length === 0) loaded.exercises = SEED_EXERCISES
-    if (loaded.foods.length === 0) loaded.foods = SEED_FOODS
+    // 仅真正首次运行补种子；已明确保存 [] 表示用户要空库。
+    if (rawData == null) {
+      loaded.exercises = SEED_EXERCISES
+      loaded.foods = SEED_FOODS
+    }
     this.data = loaded
 
     const rawChat = read(CHAT_KEY)
@@ -620,14 +638,51 @@ class AppStore {
    * 保持 AppData 字段在顶层，旧导出文件与新文件都能被 Importer 原样读回。
    */
   exportJSON(): string {
-    const obj = JSON.parse(encodeJSON(this.data)) as Record<string, unknown>
-    if (this.chatMessages.length > 0) {
-      obj.chat = JSON.parse(encodeJSON(this.chatMessages))
-    }
+    return this.encodeBackup(this.data, this.chatMessages)
+  }
+
+  private encodeBackup(data: AppData, chat: ChatMessage[]): string {
+    const obj = JSON.parse(
+      encodeJSON({ ...data, schemaVersion: CURRENT_SCHEMA_VERSION }),
+    ) as Record<string, unknown>
+    if (chat.length > 0) obj.chat = JSON.parse(encodeJSON(chat))
     return encodeJSON(obj)
   }
 
-  /** 整体替换数据（导入用） */
+  /** 上一次完整恢复开始前保存的完整快照，可直接下载或重新导入。 */
+  getRestoreBackupJSON(): string | null {
+    return read(BACKUP_KEY)
+  }
+
+  /**
+   * 完整恢复事务：先落恢复前快照，再写 data/chat；所有持久化成功后才更新内存。
+   * localStorage 没有多键事务，因此第二键失败时尽最大可能还原两个旧值。
+   */
+  applyRestore(plan: RestorePlan): RestoreStats {
+    const snapshot = this.encodeBackup(this.data, this.chatMessages)
+    const nextData = encodeJSON({ ...plan.data, schemaVersion: CURRENT_SCHEMA_VERSION })
+    const nextChat = encodeJSON(plan.chat)
+    const oldData = read(DATA_KEY)
+    const oldChat = read(CHAT_KEY)
+
+    if (!write(BACKUP_KEY, snapshot)) throw new Error('无法保存恢复前快照，恢复已取消')
+    if (!write(DATA_KEY, nextData)) throw new Error('无法持久化恢复数据，恢复已取消')
+    if (!write(CHAT_KEY, nextChat)) {
+      const dataRolledBack = oldData == null ? remove(DATA_KEY) : write(DATA_KEY, oldData)
+      const chatRolledBack = oldChat == null ? remove(CHAT_KEY) : write(CHAT_KEY, oldChat)
+      if (!dataRolledBack || !chatRolledBack) {
+        throw new Error('聊天数据持久化失败，且本地存储回滚不完整；内存数据未改变')
+      }
+      throw new Error('聊天数据持久化失败，已回滚本地存储；内存数据未改变')
+    }
+
+    this.data = { ...plan.data, schemaVersion: CURRENT_SCHEMA_VERSION }
+    this.chatMessages = plan.chat
+    this.emit()
+    return plan.stats
+  }
+
+  /** 整体替换数据（历史追加导入用） */
   replaceData(next: AppData): void {
     this.commit(next)
   }
@@ -635,7 +690,12 @@ class AppStore {
   reload(): void {
     const raw = read(DATA_KEY)
     const parsed = raw == null ? null : safeParse(raw)
-    this.data = parsed == null ? emptyAppData() : normalizeData(parsed)
+    const loaded = parsed == null ? emptyAppData() : normalizeData(parsed)
+    if (raw == null) {
+      loaded.exercises = SEED_EXERCISES
+      loaded.foods = SEED_FOODS
+    }
+    this.data = loaded
     this.emit()
   }
 }

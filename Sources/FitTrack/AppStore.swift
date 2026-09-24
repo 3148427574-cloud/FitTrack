@@ -12,14 +12,16 @@ final class AppStore: ObservableObject {
         let url = AppStore.defaultFileURL()
         self.fileURL = url
         self.chatURL = url.deletingLastPathComponent().appendingPathComponent("chat.json")
-        if let loaded = AppStore.load(from: url) {
+        let persisted = try? Data(contentsOf: url)
+        let fields = persisted.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+        if let persisted, let loaded = AppStore.decodeData(persisted) {
             self.data = loaded
         } else {
             self.data = AppData()
         }
         self.chatMessages = AppStore.loadChat(from: chatURL) ?? []
-        if data.exercises.isEmpty { data.exercises = SeedData.exercises }
-        if data.foods.isEmpty { data.foods = SeedData.foods }
+        if persisted == nil || fields?["exercises"] == nil { data.exercises = SeedData.exercises }
+        if persisted == nil || fields?["foods"] == nil { data.foods = SeedData.foods }
     }
 
     static func loadChat(from url: URL) -> [ChatMessage]? {
@@ -384,9 +386,20 @@ final class AppStore: ObservableObject {
 
     static func load(from url: URL) -> AppData? {
         guard let d = try? Data(contentsOf: url) else { return nil }
+        return decodeData(d)
+    }
+
+    private static func decodeData(_ raw: Data) -> AppData? {
         let dec = JSONDecoder()
         dec.dateDecodingStrategy = .iso8601
-        return try? dec.decode(AppData.self, from: d)
+        return try? dec.decode(AppData.self, from: raw)
+    }
+
+    private static func encoder() -> JSONEncoder {
+        let enc = JSONEncoder()
+        enc.dateEncodingStrategy = .iso8601
+        enc.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return enc
     }
 
     func save() {
@@ -417,21 +430,65 @@ final class AppStore: ObservableObject {
     }
 
     /// 导出为 `AppData` 原样展开 + 一个 `chat` 键（聊天历史）。
-    /// 保持 AppData 字段在顶层，旧导出文件与新文件都能被 `Importer.importJSON` 原样读回。
-    func exportJSON() -> String {
-        let enc = JSONEncoder()
-        enc.dateEncodingStrategy = .iso8601
-        enc.outputFormatting = [.prettyPrinted, .sortedKeys]
-        guard let d = try? enc.encode(data),
-              var obj = (try? JSONSerialization.jsonObject(with: d)) as? [String: Any] else { return "{}" }
-        if !chatMessages.isEmpty,
-           let cd = try? enc.encode(chatMessages),
-           let chat = try? JSONSerialization.jsonObject(with: cd) {
-            obj["chat"] = chat
+    /// 保持 AppData 字段在顶层，旧导出文件与新文件都能被完整恢复流程读回。
+    func exportJSON() throws -> String {
+        let out = try Self.backupData(data: data, chat: chatMessages)
+        guard let text = String(data: out, encoding: .utf8) else {
+            throw CocoaError(.fileWriteInapplicableStringEncoding)
         }
-        guard let out = try? JSONSerialization.data(withJSONObject: obj,
-                                                    options: [.prettyPrinted, .sortedKeys]) else { return "{}" }
-        return String(data: out, encoding: .utf8) ?? "{}"
+        return text
+    }
+
+    @discardableResult
+    func restore(_ candidate: RestoreCandidate) throws -> RestoreStats {
+        let encoded = try Self.encoder().encode(candidate.data)
+        guard let verified = Self.decodeData(encoded), verified.schemaVersion == AppData.currentSchemaVersion else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        _ = try JSONDecoder().decode([ChatMessage].self, from: JSONEncoder().encode(candidate.chat))
+
+        let fm = FileManager.default
+        let dataExisted = fm.fileExists(atPath: fileURL.path)
+        let chatExisted = fm.fileExists(atPath: chatURL.path)
+        let oldData = dataExisted ? try Data(contentsOf: fileURL) : nil
+        let oldChat = chatExisted ? try Data(contentsOf: chatURL) : nil
+        let backupDirectory = fileURL.deletingLastPathComponent().appendingPathComponent("Backups", isDirectory: true)
+        try fm.createDirectory(at: backupDirectory, withIntermediateDirectories: true)
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyyMMdd-HHmmss-SSS"
+        let snapshot = backupDirectory.appendingPathComponent("fittrack-\(formatter.string(from: Date())).json")
+        try Self.backupData(data: data, chat: chatMessages).write(to: snapshot, options: .atomic)
+
+        do {
+            try encoded.write(to: fileURL, options: .atomic)
+            try JSONEncoder().encode(candidate.chat).write(to: chatURL, options: .atomic)
+        } catch {
+            let writeError = error
+            do {
+                if let oldData { try oldData.write(to: fileURL, options: .atomic) }
+                else if fm.fileExists(atPath: fileURL.path) { try fm.removeItem(at: fileURL) }
+                if let oldChat { try oldChat.write(to: chatURL, options: .atomic) }
+                else if fm.fileExists(atPath: chatURL.path) { try fm.removeItem(at: chatURL) }
+            } catch {
+                throw BackupRecoveryError.rollbackFailed("原始错误：\(writeError.localizedDescription)；回滚错误：\(error.localizedDescription)")
+            }
+            throw writeError
+        }
+        data = verified
+        chatMessages = candidate.chat
+        return candidate.stats
+    }
+
+    private static func backupData(data: AppData, chat: [ChatMessage]) throws -> Data {
+        let enc = encoder()
+        let raw = try enc.encode(data)
+        guard var object = try JSONSerialization.jsonObject(with: raw) as? [String: Any] else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        let chatRaw = try enc.encode(chat)
+        object["chat"] = try JSONSerialization.jsonObject(with: chatRaw)
+        return try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])
     }
 
     /// 合并导入的聊天记录：按 id 去重后追加，返回新增条数

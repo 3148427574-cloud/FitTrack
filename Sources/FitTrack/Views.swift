@@ -1060,6 +1060,11 @@ struct ImportView: View {
     @State private var importing = false
     @State private var exportingJSON = false
     @State private var exportingICS = false
+    @State private var exportDocument = TextDocument(text: "")
+    @State private var backupPreview: BackupPreview?
+    @State private var restoreMode: RestoreMode = .merge
+    @State private var conflictPolicy: RestoreConflictPolicy = .local
+    @State private var confirmingRestore = false
 
     var body: some View {
         ScrollView {
@@ -1070,13 +1075,48 @@ struct ImportView: View {
                     .frame(height: 180)
                     .font(.system(.body, design: .monospaced))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3)))
+                    .onChange(of: text) { _ in backupPreview = nil }
                 HStack(spacing: 12) {
-                    Button("导入 JSON") { runJSON() }
+                    Button("追加导入 JSON") { runJSON() }
                     Button("导入 CSV") { runCSV() }
+                    Button("预览完整备份") { previewBackup() }
                     Button { importing = true } label: { Label("选择文件", systemImage: "folder") }
                     Spacer()
-                    Button { exportingJSON = true } label: { Label("导出 JSON", systemImage: "square.and.arrow.up") }
+                    Button { prepareExport() } label: { Label("导出 JSON", systemImage: "square.and.arrow.up") }
                     Button { exportingICS = true } label: { Label("导出 .ics", systemImage: "calendar.badge.plus") }
+                }
+                if let preview = backupPreview {
+                    GroupBox("完整备份预览 · schema v\(preview.schemaVersion)") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(preview.fieldDescription("workouts", count: preview.data.workouts.count))
+                            Text(preview.fieldDescription("plannedWorkouts", count: preview.data.plannedWorkouts.count))
+                            Text(preview.fieldDescription("bodyMetrics", count: preview.data.bodyMetrics.count))
+                            Text(preview.fieldDescription("foods", count: preview.data.foods.count))
+                            Text(preview.fieldDescription("exercises", count: preview.data.exercises.count))
+                            Text(preview.fieldDescription("dietLogs", count: preview.data.dietLogs.count))
+                            Text(preview.fieldDescription("chat", count: preview.chat.count))
+                            Picker("恢复模式", selection: $restoreMode) {
+                                ForEach(RestoreMode.allCases) { Text($0.label).tag($0) }
+                            }.pickerStyle(.segmented)
+                            Picker("冲突策略", selection: $conflictPolicy) {
+                                ForEach(RestoreConflictPolicy.allCases) { Text($0.label).tag($0) }
+                            }.pickerStyle(.segmented)
+                            if restoreMode == .replace {
+                                Text("完整替换会以备份内容替换本地配置和所有集合。提交前会自动创建完整快照。")
+                                    .foregroundStyle(.orange)
+                            }
+                            ForEach(preview.issues) { issue in
+                                Text("• \(issue.description)")
+                                    .font(.caption)
+                                    .foregroundStyle(issue.blocking ? .red : .secondary)
+                            }
+                            Button("应用完整备份") { confirmingRestore = true }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(!preview.canApply)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(6)
+                    }
                 }
                 if !message.isEmpty { Text(message).font(.callout).foregroundStyle(.secondary) }
                 Text(helpText)
@@ -1088,12 +1128,23 @@ struct ImportView: View {
                       allowedContentTypes: [.json, .commaSeparatedText, .plainText]) { res in
             if case .success(let url) = res, let content = try? String(contentsOf: url, encoding: .utf8) {
                 text = content
-                if url.pathExtension.lowercased() == "json" { runJSON() } else { runCSV() }
+                if url.pathExtension.lowercased() == "json" { previewBackup() } else { runCSV() }
             }
         }
+        .confirmationDialog(restoreMode == .replace ? "确认完整替换？" : "确认合并备份？",
+                            isPresented: $confirmingRestore, titleVisibility: .visible) {
+            Button(restoreMode == .replace ? "完整替换" : "合并", role: restoreMode == .replace ? .destructive : nil) {
+                applyBackup()
+            }
+            Button("取消", role: .cancel) { }
+        } message: {
+            Text("恢复前会自动备份当前数据；写入失败时会尽最大可能回滚。")
+        }
         .fileExporter(isPresented: $exportingJSON,
-                      document: TextDocument(text: store.exportJSON()),
-                      contentType: .json, defaultFilename: "fittrack-export.json") { _ in }
+                      document: exportDocument,
+                      contentType: .json, defaultFilename: "fittrack-export.json") { result in
+            if case .failure(let error) = result { message = "导出失败：\(error.localizedDescription)" }
+        }
         .fileExporter(isPresented: $exportingICS,
                       document: TextDocument(text: ICSExporter.ics(for: upcoming(),
                                                                     bodyWeightKG: store.currentBodyWeightKG,
@@ -1118,6 +1169,40 @@ struct ImportView: View {
         let r = Importer.importCSV(text, into: &store.data)
         message = r.message
         if r.workouts > 0 || r.metrics > 0 { store.save() }
+    }
+
+    private func previewBackup() {
+        do {
+            backupPreview = try BackupRecovery.parse(text)
+            message = "备份解析完成，请检查预览、恢复模式和冲突策略。"
+        } catch {
+            backupPreview = nil
+            message = "备份解析失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func applyBackup() {
+        do {
+            let preview = try BackupRecovery.parse(text)
+            backupPreview = preview
+            let candidate = try BackupRecovery.candidate(from: preview, local: store.data,
+                                                         localChat: store.chatMessages,
+                                                         mode: restoreMode, policy: conflictPolicy)
+            let stats = try store.restore(candidate)
+            message = "恢复完成：\(stats.summary)；问题 \(candidate.issues.count) 条"
+            backupPreview = nil
+        } catch {
+            message = "恢复失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func prepareExport() {
+        do {
+            exportDocument = TextDocument(text: try store.exportJSON())
+            exportingJSON = true
+        } catch {
+            message = "导出失败：\(error.localizedDescription)"
+        }
     }
 
     private let helpText = """

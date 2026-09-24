@@ -82,6 +82,15 @@ describe('decodeJSON', () => {
     expect(parsed.note).toBe('2026-09-20T07:37:07Z')
   })
 
+  it('扩展日期白名单字段也还原成 Date', () => {
+    const parsed = decodeJSON<any>('{"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-02T00:00:00Z","deletedAt":"2026-01-03T00:00:00Z","evaluatedAt":"2026-01-04T00:00:00Z","decidedAt":"2026-01-05T00:00:00Z"}')
+    expect(parsed.createdAt).toBeInstanceOf(Date)
+    expect(parsed.updatedAt).toBeInstanceOf(Date)
+    expect(parsed.deletedAt).toBeInstanceOf(Date)
+    expect(parsed.evaluatedAt).toBeInstanceOf(Date)
+    expect(parsed.decidedAt).toBeInstanceOf(Date)
+  })
+
   it('不是日期的字符串留在字符串里', () => {
     expect(decodeJSON<any>('{"date":"not-a-date"}').date).toBe('not-a-date')
   })

@@ -7,11 +7,23 @@
 // 所以返回追加后的新对象，页面拿它调 store.replaceData()。
 
 import {
+  CURRENT_SCHEMA_VERSION,
+  decodeJSON,
+  encodeJSON,
   newID,
+  SEED_EXERCISES,
+  SEED_FOODS,
   type AppData,
+  type BigThreeMax,
   type BodyMetric,
   type ChatMessage,
+  type DietLog,
+  type ExerciseDef,
   type ExerciseEntry,
+  type Food,
+  type Goal,
+  type PlannedWorkout,
+  type UserProfile,
   type WorkoutSession,
 } from './models'
 
@@ -400,4 +412,459 @@ export function importCSV(text: string, data: AppData): { result: ImportResult; 
   return { result, data: { ...data, workouts, bodyMetrics } }
 }
 
-export const Importer = { importJSON, importCSV, parseDate, parseCSV }
+// MARK: - 完整备份恢复
+
+export type RestoreMode = 'replace' | 'merge'
+export type ConflictStrategy = 'local' | 'backup'
+export type CollectionKey =
+  | 'workouts'
+  | 'plannedWorkouts'
+  | 'bodyMetrics'
+  | 'foods'
+  | 'exercises'
+  | 'dietLogs'
+
+export interface RestoreIssue {
+  path: string
+  message: string
+}
+
+export interface RestoreCounts {
+  workouts: number
+  plannedWorkouts: number
+  bodyMetrics: number
+  foods: number
+  exercises: number
+  dietLogs: number
+  chat: number
+}
+
+export interface RestorePreview {
+  kind: 'full'
+  valid: boolean
+  sourceVersion: number
+  schemaVersion: number
+  data: AppData | null
+  chat: ChatMessage[]
+  presentFields: Set<string>
+  counts: RestoreCounts
+  skipped: number
+  issues: RestoreIssue[]
+}
+
+export interface RestoreStats {
+  added: number
+  updated: number
+  ignored: number
+  skipped: number
+  issues: RestoreIssue[]
+}
+
+export interface RestorePlan {
+  data: AppData
+  chat: ChatMessage[]
+  stats: RestoreStats
+}
+
+const COLLECTION_KEYS: CollectionKey[] = [
+  'workouts',
+  'plannedWorkouts',
+  'bodyMetrics',
+  'foods',
+  'exercises',
+  'dietLogs',
+]
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const WORKOUT_STATUSES = new Set(['planned', 'completed', 'skipped'])
+const DIET_SOURCES = new Set(['manual', 'image'])
+
+function counts(data: AppData | null, chat: ChatMessage[]): RestoreCounts {
+  return {
+    workouts: data?.workouts.length ?? 0,
+    plannedWorkouts: data?.plannedWorkouts.length ?? 0,
+    bodyMetrics: data?.bodyMetrics.length ?? 0,
+    foods: data?.foods.length ?? 0,
+    exercises: data?.exercises.length ?? 0,
+    dietLogs: data?.dietLogs.length ?? 0,
+    chat: chat.length,
+  }
+}
+
+function validUUID(v: unknown): v is string {
+  return typeof v === 'string' && UUID.test(v)
+}
+
+function finite(v: unknown, nonnegative = false): v is number {
+  return typeof v === 'number' && Number.isFinite(v) && (!nonnegative || v >= 0)
+}
+
+function nonnegativeInteger(v: unknown): v is number {
+  return finite(v, true) && Number.isInteger(v)
+}
+
+function validDate(v: unknown): v is Date {
+  return v instanceof Date && Number.isFinite(v.getTime())
+}
+
+function optionalFinite(v: unknown, nonnegative = false): boolean {
+  return v == null || finite(v, nonnegative)
+}
+
+function validProfile(v: unknown): v is UserProfile {
+  return (
+    isObject(v) &&
+    typeof v.sex === 'string' &&
+    nonnegativeInteger(v.age) &&
+    finite(v.heightCM, true) &&
+    finite(v.activityLevel, true) &&
+    nonnegativeInteger(v.trainingDaysPerWeek)
+  )
+}
+
+function validGoal(v: unknown): v is Goal {
+  return (
+    isObject(v) &&
+    (v.type === 'bulk' || v.type === 'cut' || v.type === 'maintain') &&
+    finite(v.targetWeightKG, true) &&
+    optionalFinite(v.targetBodyFatPct, true) &&
+    finite(v.weeklyTargetDeltaKG, true)
+  )
+}
+
+function validSets(v: unknown): boolean {
+  return Array.isArray(v) && v.every((s) => isObject(s) && nonnegativeInteger(s.reps) && finite(s.weightKG, true))
+}
+
+function uniqueNestedIDs(v: unknown): boolean {
+  if (!Array.isArray(v)) return false
+  const ids = v.map((item) => isObject(item) && typeof item.id === 'string' ? item.id.toLowerCase() : '')
+  return new Set(ids).size === ids.length
+}
+
+function validWorkout(v: unknown): v is WorkoutSession {
+  return (
+    isObject(v) &&
+    validUUID(v.id) &&
+    validDate(v.date) &&
+    typeof v.splitName === 'string' &&
+    finite(v.durationMin, true) &&
+    typeof v.notes === 'string' &&
+    Array.isArray(v.exercises) &&
+    uniqueNestedIDs(v.exercises) &&
+    v.exercises.every(
+      (e) => isObject(e) && validUUID(e.id) && typeof e.name === 'string' && validSets(e.sets) && optionalFinite(e.rpe),
+    )
+  )
+}
+
+function validPlanned(v: unknown): v is PlannedWorkout {
+  return (
+    isObject(v) &&
+    validUUID(v.id) &&
+    validDate(v.date) &&
+    typeof v.splitName === 'string' &&
+    typeof v.status === 'string' &&
+    WORKOUT_STATUSES.has(v.status) &&
+    (v.note == null || typeof v.note === 'string') &&
+    (v.reminderID == null || typeof v.reminderID === 'string') &&
+    Array.isArray(v.exercises) &&
+    uniqueNestedIDs(v.exercises) &&
+    v.exercises.every(
+      (e) =>
+        isObject(e) &&
+        validUUID(e.id) &&
+        typeof e.name === 'string' &&
+        nonnegativeInteger(e.targetSets) &&
+        nonnegativeInteger(e.targetReps) &&
+        finite(e.targetWeightKG, true),
+    )
+  )
+}
+
+function validMetric(v: unknown): v is BodyMetric {
+  return (
+    isObject(v) &&
+    validUUID(v.id) &&
+    validDate(v.date) &&
+    finite(v.weightKG, true) &&
+    ['bodyFatPct', 'muscleMassKG', 'waistCM', 'chestCM', 'armCM', 'thighCM'].every((k) =>
+      optionalFinite(v[k], true),
+    )
+  )
+}
+
+function validFood(v: unknown): v is Food {
+  return (
+    isObject(v) &&
+    validUUID(v.id) &&
+    typeof v.name === 'string' &&
+    finite(v.kcalPer100g, true) &&
+    finite(v.proteinPer100g, true) &&
+    finite(v.carbPer100g, true) &&
+    finite(v.fatPer100g, true)
+  )
+}
+
+function validExercise(v: unknown): v is ExerciseDef {
+  return (
+    isObject(v) &&
+    validUUID(v.id) &&
+    typeof v.name === 'string' &&
+    typeof v.muscleGroup === 'string' &&
+    typeof v.equipment === 'string' &&
+    typeof v.isBodyweight === 'boolean'
+  )
+}
+
+function validDietLog(v: unknown): v is DietLog {
+  return (
+    isObject(v) &&
+    validUUID(v.id) &&
+    validDate(v.date) &&
+    typeof v.foodName === 'string' &&
+    finite(v.amountG, true) &&
+    (v.foodId == null || validUUID(v.foodId)) &&
+    ['kcal', 'protein', 'carb', 'fat'].every((k) => optionalFinite(v[k], true)) &&
+    (v.source == null || (typeof v.source === 'string' && DIET_SOURCES.has(v.source))) &&
+    (v.imageName == null || typeof v.imageName === 'string')
+  )
+}
+
+function validBigThree(v: unknown): v is BigThreeMax | null {
+  return v == null || (isObject(v) && ['benchKG', 'squatKG', 'deadliftKG'].every((k) => optionalFinite(v[k], true)))
+}
+
+function validChat(v: unknown): v is ChatMessage {
+  return (
+    isObject(v) &&
+    validUUID(v.id) &&
+    typeof v.role === 'string' &&
+    typeof v.content === 'string' &&
+    (v.proposal == null || typeof v.proposal === 'string') &&
+    (v.proposalStatus == null || typeof v.proposalStatus === 'string') &&
+    (v.proposalResult == null || (Array.isArray(v.proposalResult) && v.proposalResult.every((item) => typeof item === 'string')))
+  )
+}
+
+const validators: Record<CollectionKey, (v: unknown) => boolean> = {
+  workouts: validWorkout,
+  plannedWorkouts: validPlanned,
+  bodyMetrics: validMetric,
+  foods: validFood,
+  exercises: validExercise,
+  dietLogs: validDietLog,
+}
+
+function validatedArray<T>(
+  raw: unknown,
+  key: CollectionKey | 'chat',
+  validate: (v: unknown) => boolean,
+  issues: RestoreIssue[],
+): T[] | null {
+  if (!Array.isArray(raw)) {
+    issues.push({ path: key, message: '必须是数组' })
+    return null
+  }
+  const out: T[] = []
+  const ids = new Set<string>()
+  raw.forEach((item, index) => {
+    let candidate = item
+    if (isObject(item)) {
+      candidate = { ...item }
+      if (key === 'workouts' && !Object.hasOwn(item, 'notes')) candidate.notes = ''
+      if (key === 'plannedWorkouts' && !Object.hasOwn(item, 'status')) candidate.status = 'planned'
+      if (key === 'exercises' && !Object.hasOwn(item, 'isBodyweight')) candidate.isBodyweight = false
+    }
+    if (!validate(candidate)) {
+      issues.push({ path: `${key}[${index}]`, message: '字段、UUID、日期、枚举或数值无效，已跳过' })
+      return
+    }
+    const id = (candidate as { id: string }).id.toLowerCase()
+    if (ids.has(id)) {
+      issues.push({ path: `${key}[${index}]`, message: `重复 id ${id}，已跳过` })
+      return
+    }
+    ids.add(id)
+    const normalized = { ...candidate, id } as Record<string, unknown>
+    if ((key === 'workouts' || key === 'plannedWorkouts') && Array.isArray(normalized.exercises)) {
+      normalized.exercises = normalized.exercises.map((exercise) => ({
+        ...exercise as Record<string, unknown>,
+        id: (exercise as { id: string }).id.toLowerCase(),
+      }))
+    }
+    if (key === 'dietLogs' && typeof normalized.foodId === 'string') normalized.foodId = normalized.foodId.toLowerCase()
+    out.push(normalized as T)
+  })
+  return out
+}
+
+/** 纯解析、迁移和验证；不会读取或修改 Store。 */
+export function previewFullBackup(text: string): RestorePreview | null {
+  let raw: unknown
+  try {
+    raw = decodeJSON<unknown>(text)
+  } catch {
+    return null
+  }
+  if (!isObject(raw)) return null
+  const presentFields = new Set(Object.keys(raw))
+  const appDataMarkers = [...COLLECTION_KEYS, 'bigThree', 'coachNotes', 'createdAt', 'updatedAt']
+  if (!presentFields.has('schemaVersion') &&
+      !(presentFields.has('profile') && presentFields.has('goal') && appDataMarkers.some((key) => presentFields.has(key)))) {
+    return null
+  }
+
+  const issues: RestoreIssue[] = []
+  const sourceVersion = raw.schemaVersion == null ? 1 : asNumber(raw.schemaVersion)
+  if (sourceVersion == null || !Number.isInteger(sourceVersion) || sourceVersion < 1) {
+    issues.push({ path: 'schemaVersion', message: 'schemaVersion 必须是正整数' })
+  } else if (sourceVersion > CURRENT_SCHEMA_VERSION) {
+    issues.push({ path: 'schemaVersion', message: `备份版本 v${sourceVersion} 高于当前支持的 v${CURRENT_SCHEMA_VERSION}` })
+  }
+  if (!validProfile(raw.profile)) issues.push({ path: 'profile', message: '关键配置缺失或无效，不能静默使用默认值' })
+  if (!validGoal(raw.goal)) issues.push({ path: 'goal', message: '关键配置缺失或无效，不能静默使用默认值' })
+  if (!validBigThree(raw.bigThree)) issues.push({ path: 'bigThree', message: '三大项配置无效' })
+  if (raw.coachNotes != null && (!Array.isArray(raw.coachNotes) || !raw.coachNotes.every((v) => typeof v === 'string'))) {
+    issues.push({ path: 'coachNotes', message: '长期偏好必须是字符串数组' })
+  }
+  for (const field of ['createdAt', 'updatedAt'] as const) {
+    if (raw[field] != null && !validDate(raw[field])) issues.push({ path: field, message: '日期无效' })
+  }
+
+  const collections: Partial<Record<CollectionKey, unknown[]>> = {}
+  for (const key of COLLECTION_KEYS) {
+    if (!presentFields.has(key)) {
+      collections[key] = key === 'foods' ? [...SEED_FOODS] : key === 'exercises' ? [...SEED_EXERCISES] : []
+      continue
+    }
+    const value = validatedArray(raw[key], key, validators[key], issues)
+    if (value != null) collections[key] = value
+  }
+  const chat = raw.chat == null ? [] : (validatedArray<ChatMessage>(raw.chat, 'chat', validChat, issues) ?? [])
+  const critical = issues.some((issue) =>
+    ['schemaVersion', 'profile', 'goal', 'bigThree', 'coachNotes', 'createdAt', 'updatedAt', 'chat'].includes(issue.path) ||
+    (COLLECTION_KEYS as string[]).includes(issue.path),
+  )
+  const skipped = issues.filter((issue) => /\[\d+\]/.test(issue.path)).length
+  const data = critical
+    ? null
+    : ({
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        createdAt: raw.createdAt as Date | null | undefined,
+        updatedAt: raw.updatedAt as Date | null | undefined,
+        profile: raw.profile as UserProfile,
+        goal: raw.goal as Goal,
+        workouts: collections.workouts as WorkoutSession[],
+        plannedWorkouts: collections.plannedWorkouts as PlannedWorkout[],
+        bodyMetrics: collections.bodyMetrics as BodyMetric[],
+        foods: collections.foods as Food[],
+        exercises: collections.exercises as ExerciseDef[],
+        dietLogs: collections.dietLogs as DietLog[],
+        bigThree: (raw.bigThree ?? null) as BigThreeMax | null,
+        coachNotes: (raw.coachNotes ?? null) as string[] | null,
+      } satisfies AppData)
+  return {
+    kind: 'full',
+    valid: data != null,
+    sourceVersion: sourceVersion ?? 0,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data,
+    chat,
+    presentFields,
+    counts: counts(data, chat),
+    skipped,
+    issues,
+  }
+}
+
+function equalValue(a: unknown, b: unknown): boolean {
+  return encodeJSON(a) === encodeJSON(b)
+}
+
+function mergeByID<T extends { id: string }>(
+  local: T[],
+  backup: T[],
+  strategy: ConflictStrategy,
+  stats: RestoreStats,
+): T[] {
+  const out = [...local]
+  const indexes = new Map(out.map((item, index) => [item.id.toLowerCase(), index]))
+  for (const item of backup) {
+    const id = item.id.toLowerCase()
+    const index = indexes.get(id)
+    if (index == null) {
+      indexes.set(id, out.length)
+      out.push(item)
+      stats.added++
+    } else if (equalValue(out[index], item)) {
+      stats.ignored++
+    } else if (strategy === 'backup') {
+      out[index] = item
+      stats.updated++
+    } else {
+      stats.ignored++
+    }
+  }
+  return out
+}
+
+function mergeSingle<T>(local: T, backup: T, present: boolean, strategy: ConflictStrategy, stats: RestoreStats): T {
+  if (!present || equalValue(local, backup)) {
+    stats.ignored++
+    return local
+  }
+  if (strategy === 'backup') {
+    stats.updated++
+    return backup
+  }
+  stats.ignored++
+  return local
+}
+
+/** 从预览生成确定的替换/合并结果；不产生副作用。 */
+export function planFullRestore(
+  preview: RestorePreview,
+  localData: AppData,
+  localChat: ChatMessage[],
+  mode: RestoreMode,
+  strategy: ConflictStrategy,
+): RestorePlan {
+  if (!preview.valid || preview.data == null) throw new Error('完整备份未通过验证')
+  const stats: RestoreStats = {
+    added: 0,
+    updated: 0,
+    ignored: 0,
+    skipped: preview.skipped,
+    issues: preview.issues,
+  }
+  if (mode === 'replace') {
+    stats.added = Object.values(preview.counts).reduce((sum, value) => sum + value, 0)
+    return { data: preview.data, chat: preview.chat, stats }
+  }
+  const merged = { ...localData, schemaVersion: CURRENT_SCHEMA_VERSION }
+  for (const key of COLLECTION_KEYS) {
+    ;(merged[key] as { id: string }[]) = mergeByID(
+      localData[key] as { id: string }[],
+      preview.data[key] as { id: string }[],
+      strategy,
+      stats,
+    )
+  }
+  merged.profile = mergeSingle(localData.profile, preview.data.profile, preview.presentFields.has('profile'), strategy, stats)
+  merged.goal = mergeSingle(localData.goal, preview.data.goal, preview.presentFields.has('goal'), strategy, stats)
+  merged.bigThree = mergeSingle(localData.bigThree, preview.data.bigThree, preview.presentFields.has('bigThree'), strategy, stats)
+  merged.coachNotes = mergeSingle(localData.coachNotes, preview.data.coachNotes, preview.presentFields.has('coachNotes'), strategy, stats)
+  merged.createdAt = localData.createdAt ?? preview.data.createdAt
+  merged.updatedAt = preview.data.updatedAt ?? localData.updatedAt
+  const chat = mergeByID(localChat, preview.chat, strategy, stats)
+  return { data: merged, chat, stats }
+}
+
+export const Importer = {
+  importJSON,
+  importCSV,
+  parseDate,
+  parseCSV,
+  previewFullBackup,
+  planFullRestore,
+}

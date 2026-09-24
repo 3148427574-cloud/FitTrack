@@ -56,6 +56,30 @@ struct WorkoutSession: Codable, Hashable, Identifiable {
     var exercises: [ExerciseEntry]
     var durationMin: Double
     var notes: String = ""
+
+    private enum CodingKeys: String, CodingKey {
+        case id, date, splitName, exercises, durationMin, notes
+    }
+
+    init(id: UUID = UUID(), date: Date, splitName: String, exercises: [ExerciseEntry],
+         durationMin: Double, notes: String = "") {
+        self.id = id
+        self.date = date
+        self.splitName = splitName
+        self.exercises = exercises
+        self.durationMin = durationMin
+        self.notes = notes
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        date = try c.decode(Date.self, forKey: .date)
+        splitName = try c.decode(String.self, forKey: .splitName)
+        exercises = try c.decode([ExerciseEntry].self, forKey: .exercises)
+        durationMin = try c.decode(Double.self, forKey: .durationMin)
+        notes = try c.decodeIfPresent(String.self, forKey: .notes) ?? ""
+    }
 }
 
 struct PlannedExercise: Codable, Hashable, Identifiable {
@@ -74,6 +98,32 @@ struct PlannedWorkout: Codable, Hashable, Identifiable {
     var status: WorkoutStatus = .planned
     var note: String?
     var reminderID: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case id, date, splitName, exercises, status, note, reminderID
+    }
+
+    init(id: UUID = UUID(), date: Date, splitName: String, exercises: [PlannedExercise],
+         status: WorkoutStatus = .planned, note: String? = nil, reminderID: String? = nil) {
+        self.id = id
+        self.date = date
+        self.splitName = splitName
+        self.exercises = exercises
+        self.status = status
+        self.note = note
+        self.reminderID = reminderID
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        date = try c.decode(Date.self, forKey: .date)
+        splitName = try c.decode(String.self, forKey: .splitName)
+        exercises = try c.decode([PlannedExercise].self, forKey: .exercises)
+        status = try c.decodeIfPresent(WorkoutStatus.self, forKey: .status) ?? .planned
+        note = try c.decodeIfPresent(String.self, forKey: .note)
+        reminderID = try c.decodeIfPresent(String.self, forKey: .reminderID)
+    }
 }
 
 extension PlannedExercise {
@@ -134,6 +184,28 @@ struct ExerciseDef: Codable, Hashable, Identifiable {
     var muscleGroup: String
     var equipment: String
     var isBodyweight: Bool = false
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, muscleGroup, equipment, isBodyweight
+    }
+
+    init(id: UUID = UUID(), name: String, muscleGroup: String, equipment: String,
+         isBodyweight: Bool = false) {
+        self.id = id
+        self.name = name
+        self.muscleGroup = muscleGroup
+        self.equipment = equipment
+        self.isBodyweight = isBodyweight
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        muscleGroup = try c.decode(String.self, forKey: .muscleGroup)
+        equipment = try c.decode(String.self, forKey: .equipment)
+        isBodyweight = try c.decodeIfPresent(Bool.self, forKey: .isBodyweight) ?? false
+    }
 }
 
 struct Food: Codable, Hashable, Identifiable {
@@ -246,6 +318,11 @@ struct AIUpdatePayload: Codable {
 // MARK: - 根数据
 
 struct AppData: Codable {
+    static let currentSchemaVersion = 2
+
+    var schemaVersion: Int? = AppData.currentSchemaVersion
+    var createdAt: Date? = Date()
+    var updatedAt: Date? = Date()
     var profile: UserProfile = UserProfile()
     var goal: Goal = Goal()
     var workouts: [WorkoutSession] = []
@@ -258,6 +335,50 @@ struct AppData: Codable {
     var bigThree: BigThreeMax? = nil
     /// 用户在对话中表达的长期偏好与约束，会注入 AI 上下文
     var coachNotes: [String]? = nil
+
+    init(schemaVersion: Int? = AppData.currentSchemaVersion,
+         createdAt: Date? = Date(), updatedAt: Date? = Date(),
+         profile: UserProfile = UserProfile(), goal: Goal = Goal(),
+         workouts: [WorkoutSession] = [], plannedWorkouts: [PlannedWorkout] = [],
+         bodyMetrics: [BodyMetric] = [], foods: [Food] = [], exercises: [ExerciseDef] = [],
+         dietLogs: [DietLog] = [], bigThree: BigThreeMax? = nil,
+         coachNotes: [String]? = nil) {
+        self.schemaVersion = schemaVersion
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.profile = profile
+        self.goal = goal
+        self.workouts = workouts
+        self.plannedWorkouts = plannedWorkouts
+        self.bodyMetrics = bodyMetrics
+        self.foods = foods
+        self.exercises = exercises
+        self.dietLogs = dietLogs
+        self.bigThree = bigThree
+        self.coachNotes = coachNotes
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion, createdAt, updatedAt, profile, goal, workouts, plannedWorkouts
+        case bodyMetrics, foods, exercises, dietLogs, bigThree, coachNotes
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try c.decodeIfPresent(Int.self, forKey: .schemaVersion)
+        createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try c.decodeIfPresent(Date.self, forKey: .updatedAt)
+        profile = try c.decodeIfPresent(UserProfile.self, forKey: .profile) ?? UserProfile()
+        goal = try c.decodeIfPresent(Goal.self, forKey: .goal) ?? Goal()
+        workouts = try c.decodeIfPresent([WorkoutSession].self, forKey: .workouts) ?? []
+        plannedWorkouts = try c.decodeIfPresent([PlannedWorkout].self, forKey: .plannedWorkouts) ?? []
+        bodyMetrics = try c.decodeIfPresent([BodyMetric].self, forKey: .bodyMetrics) ?? []
+        foods = try c.decodeIfPresent([Food].self, forKey: .foods) ?? []
+        exercises = try c.decodeIfPresent([ExerciseDef].self, forKey: .exercises) ?? []
+        dietLogs = try c.decodeIfPresent([DietLog].self, forKey: .dietLogs) ?? []
+        bigThree = try c.decodeIfPresent(BigThreeMax.self, forKey: .bigThree)
+        coachNotes = try c.decodeIfPresent([String].self, forKey: .coachNotes)
+    }
 }
 
 // MARK: - 种子数据
