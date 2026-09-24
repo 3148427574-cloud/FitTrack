@@ -550,6 +550,59 @@ describe('decodePayload 的 plan 字段', () => {
   })
 })
 
+describe('校准建议状态机', () => {
+  const evaluation = {
+    id: 'calibration-1',
+    previousWindowStart: '2026-01-01',
+    previousWindowEnd: '2026-01-07',
+    currentWindowStart: '2026-01-08',
+    currentWindowEnd: '2026-01-14',
+    previousAverageKG: 70,
+    currentAverageKG: 70,
+    previousPointCount: 7,
+    currentPointCount: 7,
+    days: 7,
+    goalType: 'bulk' as const,
+    weeklyTargetDeltaKG: 0.25,
+    actualWeeklyDelta: 0,
+    deviation: -0.25,
+    suggestedAdjustmentKcal: 150,
+    appliedAdjustmentKcal: 0,
+    status: 'suggested' as const,
+    createdAt: new Date(2026, 0, 14),
+    decidedAt: null,
+  }
+
+  it('总调整余量恰好 100 时接受，实际应用量可小于原建议且重复接受幂等', () => {
+    const store = new AppStore()
+    store.replaceData({
+      ...emptyAppData(),
+      dietCalibration: { currentAdjustmentKcal: 325, evaluations: [] },
+    })
+    expect(store.recordEvaluation(evaluation)).toBe(true)
+    expect(store.recordEvaluation(evaluation)).toBe(false)
+    expect(store.acceptCalibrationSuggestion(evaluation.id, new Date(2026, 0, 15))).toBe(true)
+    expect(store.acceptCalibrationSuggestion(evaluation.id, new Date(2026, 0, 16))).toBe(false)
+    expect(store.data.dietCalibration?.currentAdjustmentKcal).toBe(425)
+    expect(store.data.dietCalibration?.evaluations[0]).toMatchObject({
+      status: 'accepted', appliedAdjustmentKcal: 100,
+    })
+  })
+
+  it('总调整余量小于 100 时拒绝接受并保持 suggested', () => {
+    const store = new AppStore()
+    store.replaceData({
+      ...emptyAppData(),
+      dietCalibration: { currentAdjustmentKcal: 350, evaluations: [evaluation] },
+    })
+    expect(store.acceptCalibrationSuggestion(evaluation.id, new Date(2026, 0, 15))).toBe(false)
+    expect(store.data.dietCalibration?.currentAdjustmentKcal).toBe(350)
+    expect(store.data.dietCalibration?.evaluations[0]).toMatchObject({
+      status: 'suggested', appliedAdjustmentKcal: 0, decidedAt: null,
+    })
+  })
+})
+
 // MARK: - 落盘往返
 //
 // 刷新页面后数据从 localStorage 读回来，日期必须还是 Date（否则排序时 .date.getTime() 抛错，

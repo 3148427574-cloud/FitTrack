@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import { LineChart } from '../components/LineChart'
 import { Card, NumberField, StatCard } from '../components/ui'
 import {
   DietPlanner,
+  createDietEvaluation,
   dietSuggestions,
   dietTargetStrategy,
   fmt0,
   fmt1,
+  latestValidWeightPerLocalDay,
   nutritionForDietLog,
+  sevenDayWeightTrend,
   summarizeDietLogsOnDate,
 } from '../engine'
 import { recognizeFoodImage, type VisionFoodItem } from '../foodVision'
@@ -36,10 +40,47 @@ export function Diet() {
   }, [imageFile])
 
   const weight = store.latestWeight ?? data.goal.targetWeightKG
-  const targets = DietPlanner.targets(data.profile, data.goal, weight)
-  const strategy = dietTargetStrategy(data.profile, data.goal, weight)
+  const calibration = data.dietCalibration ?? { currentAdjustmentKcal: 0, evaluations: [] }
+  const targets = DietPlanner.targets(
+    data.profile,
+    data.goal,
+    weight,
+    calibration.currentAdjustmentKcal,
+  )
+  const strategy = dietTargetStrategy(
+    data.profile,
+    data.goal,
+    weight,
+    calibration.currentAdjustmentKcal,
+  )
+  const trend = useMemo(() => sevenDayWeightTrend(data.bodyMetrics), [data.bodyMetrics])
+  const dailyWeights = useMemo(() => latestValidWeightPerLocalDay(data.bodyMetrics), [data.bodyMetrics])
+  const latestEvaluation = [...calibration.evaluations]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
+  const pendingSuggestion = [...calibration.evaluations]
+    .reverse()
+    .find((item) => item.status === 'suggested')
   const now = new Date()
   const consumed = summarizeDietLogsOnDate(data.dietLogs, data.foods, now)
+
+  useEffect(() => {
+    if (data.goal.type === 'maintain') return
+    const evaluation = createDietEvaluation({
+      metrics: data.bodyMetrics,
+      goal: data.goal,
+      history: calibration.evaluations,
+      currentAdjustmentKcal: calibration.currentAdjustmentKcal,
+      id: newID(),
+    })
+    if (evaluation != null && evaluation.status !== 'insufficient') {
+      store.recordEvaluation(evaluation)
+    }
+  }, [
+    calibration.currentAdjustmentKcal,
+    calibration.evaluations,
+    data.bodyMetrics,
+    data.goal,
+  ])
   const suggestions = dietSuggestions(targets, consumed)
   const todayLogs = useMemo(
     () => data.dietLogs.filter((log) =>
@@ -129,6 +170,54 @@ export function Diet() {
           <StatCard title="目标热量" value={`${fmt0(strategy.targetKcal)} kcal`} />
           <StatCard title="目标策略" value={strategy.label} />
         </div>
+      </Card>
+
+      <Card title="体重趋势与校准">
+        <div className="grid">
+          <StatCard title="有效称重日" value={`${dailyWeights.length} 天`} />
+          <StatCard title="当前累计校准" value={`${calibration.currentAdjustmentKcal > 0 ? '+' : ''}${fmt0(calibration.currentAdjustmentKcal)} kcal/天`} />
+          <StatCard
+            title="最近评估"
+            value={latestEvaluation == null
+              ? '暂无正式评估'
+              : latestEvaluation.status === 'withinRange'
+                ? '趋势在目标范围内'
+                : latestEvaluation.status === 'suggested'
+                  ? '有待确认建议'
+                  : latestEvaluation.status === 'accepted'
+                    ? '建议已接受'
+                    : latestEvaluation.status === 'dismissed'
+                      ? '暂不调整'
+                      : '仍需连续观察'}
+          />
+        </div>
+        {trend.length > 0
+          ? <LineChart points={trend.map((point) => ({ date: point.date, value: point.weightKG }))} height={180} />
+          : <div className="empty">7 个自然日窗口至少需要 4 个有效体重点，当前样本不足。</div>}
+        {latestEvaluation != null && latestEvaluation.status !== 'insufficient' && (
+          <p className="dim">
+            最近两窗均值 {fmt1(latestEvaluation.previousAverageKG)} → {fmt1(latestEvaluation.currentAverageKG)} kg，
+            实际每周变化 {latestEvaluation.actualWeeklyDelta > 0 ? '+' : ''}{fmt1(latestEvaluation.actualWeeklyDelta)} kg，
+            每窗样本 {latestEvaluation.previousPointCount}/{latestEvaluation.currentPointCount} 点。
+          </p>
+        )}
+        {data.goal.type === 'maintain' ? (
+          <p className="dim">维持目标暂不启用热量校准建议，仅展示体重趋势。</p>
+        ) : pendingSuggestion != null ? (
+          <div className="row">
+            <strong>
+              建议每日{pendingSuggestion.suggestedAdjustmentKcal > 0 ? '增加' : '减少'}{' '}
+              {fmt0(Math.abs(pendingSuggestion.suggestedAdjustmentKcal))} kcal
+            </strong>
+            <button className="btn primary" onClick={() => store.acceptCalibrationSuggestion(pendingSuggestion.id)}>接受建议</button>
+            <button className="btn" onClick={() => store.dismissSuggestion(pendingSuggestion.id)}>暂不调整</button>
+          </div>
+        ) : (
+          <p className="dim">连续两次、同方向且超过阈值的偏离才会给出调整建议。</p>
+        )}
+        <p className="dim">
+          体重会受水分、糖原、盐摄入、月经周期、消化道内容物及称重条件影响；请尽量在相同条件下称重，不依据单日波动调整饮食。
+        </p>
       </Card>
 
       <Card title="今日进度">

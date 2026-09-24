@@ -11,6 +11,7 @@ import {
   StrengthModel,
   bigThreeSet,
   bigThreeValue,
+  dailyCalorieAdjustment,
   fmt0,
   fmt1,
   fmt2,
@@ -32,6 +33,7 @@ import {
   type BigThreeMax,
   type BodyMetric,
   type ChatMessage,
+  type DietEvaluation,
   type DietLog,
   type ExerciseEntry,
   type Goal,
@@ -103,6 +105,12 @@ function normalizeData(raw: unknown): AppData {
     foods: arr(r.foods),
     exercises: arr(r.exercises),
     dietLogs: arr(r.dietLogs),
+    dietCalibration: {
+      currentAdjustmentKcal: typeof r.dietCalibration?.currentAdjustmentKcal === 'number'
+        ? r.dietCalibration.currentAdjustmentKcal
+        : 0,
+      evaluations: arr<DietEvaluation>(r.dietCalibration?.evaluations),
+    },
     bigThree: r.bigThree ?? null,
     coachNotes: r.coachNotes ?? null,
   }
@@ -579,6 +587,60 @@ class AppStore {
 
   addDietLog(l: DietLog): void {
     this.commit({ ...this.data, dietLogs: [...this.data.dietLogs, l] })
+  }
+
+  recordEvaluation(evaluation: DietEvaluation): boolean {
+    const calibration = this.data.dietCalibration ?? { currentAdjustmentKcal: 0, evaluations: [] }
+    if (calibration.evaluations.some((item) =>
+      item.id === evaluation.id ||
+      (item.currentWindowEnd === evaluation.currentWindowEnd &&
+        item.goalType === evaluation.goalType &&
+        item.weeklyTargetDeltaKG === evaluation.weeklyTargetDeltaKG),
+    )) return false
+    this.commit({
+      ...this.data,
+      dietCalibration: {
+        ...calibration,
+        evaluations: [...calibration.evaluations, evaluation],
+      },
+    })
+    return true
+  }
+
+  acceptCalibrationSuggestion(id: string, decidedAt = new Date()): boolean {
+    const calibration = this.data.dietCalibration ?? { currentAdjustmentKcal: 0, evaluations: [] }
+    const evaluation = calibration.evaluations.find((item) => item.id === id)
+    if (evaluation == null || evaluation.status !== 'suggested') return false
+    const baseAdjustment = dailyCalorieAdjustment(this.data.goal)
+    const currentTotal = baseAdjustment + calibration.currentAdjustmentKcal
+    const nextTotal = clamp(currentTotal + evaluation.suggestedAdjustmentKcal, -700, 700)
+    const applied = nextTotal - currentTotal
+    if (Math.abs(applied) < 100) return false
+    const nextAdjustment = calibration.currentAdjustmentKcal + applied
+    const evaluations = calibration.evaluations.map((item) => item.id === id
+      ? { ...item, status: 'accepted' as const, appliedAdjustmentKcal: applied, decidedAt }
+      : item)
+    this.commit({
+      ...this.data,
+      dietCalibration: { currentAdjustmentKcal: nextAdjustment, evaluations },
+    })
+    return true
+  }
+
+  dismissSuggestion(id: string, decidedAt = new Date()): boolean {
+    const calibration = this.data.dietCalibration ?? { currentAdjustmentKcal: 0, evaluations: [] }
+    const evaluation = calibration.evaluations.find((item) => item.id === id)
+    if (evaluation == null || evaluation.status !== 'suggested') return false
+    this.commit({
+      ...this.data,
+      dietCalibration: {
+        ...calibration,
+        evaluations: calibration.evaluations.map((item) => item.id === id
+          ? { ...item, status: 'dismissed' as const, decidedAt }
+          : item),
+      },
+    })
+    return true
   }
 
   deleteDietLog(id: string): void {

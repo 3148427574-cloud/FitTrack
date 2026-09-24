@@ -231,6 +231,153 @@ struct DietLog: Codable, Hashable, Identifiable {
     var imageName: String? = nil
 }
 
+enum DietEvaluationStatus: String, Codable, Hashable {
+    case insufficient, withinRange, deviating, suggested, accepted, dismissed
+}
+
+struct DietEvaluation: Codable, Hashable, Identifiable {
+    var id: UUID = UUID()
+    var earliestWindowStart: String
+    var earliestWindowEnd: String
+    var latestWindowStart: String
+    var latestWindowEnd: String
+    var earliestAverageKG: Double?
+    var latestAverageKG: Double?
+    var earliestPointCount: Int
+    var latestPointCount: Int
+    var days: Double?
+    var goalType: GoalType
+    var targetWeeklyDeltaKG: Double
+    var actualWeeklyDeltaKG: Double?
+    var deviationKGPerWeek: Double?
+    var suggestedAdjustmentKcal: Double?
+    var appliedAdjustmentKcal: Double?
+    var status: DietEvaluationStatus
+    var createdAt: Date
+    var decidedAt: Date?
+
+    private enum CodingKeys: String, CodingKey {
+        case id, previousWindowStart, previousWindowEnd, currentWindowStart, currentWindowEnd
+        case previousAverageKG, currentAverageKG, previousPointCount, currentPointCount, days
+        case goalType, weeklyTargetDeltaKG, actualWeeklyDelta, deviation
+        case suggestedAdjustmentKcal, appliedAdjustmentKcal, status, createdAt, decidedAt
+        case earliestWindowStart, earliestWindowEnd, latestWindowStart, latestWindowEnd
+        case earliestAverageKG, latestAverageKG, earliestPointCount, latestPointCount
+        case targetWeeklyDeltaKG, actualWeeklyDeltaKG, deviationKGPerWeek
+    }
+
+    init(id: UUID = UUID(), earliestWindowStart: String, earliestWindowEnd: String,
+         latestWindowStart: String, latestWindowEnd: String, earliestAverageKG: Double?,
+         latestAverageKG: Double?, earliestPointCount: Int, latestPointCount: Int,
+         days: Double?, goalType: GoalType, targetWeeklyDeltaKG: Double,
+         actualWeeklyDeltaKG: Double?, deviationKGPerWeek: Double?,
+         suggestedAdjustmentKcal: Double?, appliedAdjustmentKcal: Double?,
+         status: DietEvaluationStatus, createdAt: Date, decidedAt: Date?) {
+        self.id = id
+        self.earliestWindowStart = earliestWindowStart
+        self.earliestWindowEnd = earliestWindowEnd
+        self.latestWindowStart = latestWindowStart
+        self.latestWindowEnd = latestWindowEnd
+        self.earliestAverageKG = earliestAverageKG
+        self.latestAverageKG = latestAverageKG
+        self.earliestPointCount = earliestPointCount
+        self.latestPointCount = latestPointCount
+        self.days = days
+        self.goalType = goalType
+        self.targetWeeklyDeltaKG = targetWeeklyDeltaKG
+        self.actualWeeklyDeltaKG = actualWeeklyDeltaKG
+        self.deviationKGPerWeek = deviationKGPerWeek
+        self.suggestedAdjustmentKcal = suggestedAdjustmentKcal
+        self.appliedAdjustmentKcal = appliedAdjustmentKcal
+        self.status = status
+        self.createdAt = createdAt
+        self.decidedAt = decidedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        func string(_ current: CodingKeys, _ legacy: CodingKeys) throws -> String {
+            let value = try c.decodeIfPresent(String.self, forKey: current)
+                ?? c.decode(String.self, forKey: legacy)
+            guard value.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else {
+                throw DecodingError.dataCorruptedError(forKey: current, in: c,
+                                                       debugDescription: "窗口日期必须为本地 YYYY-MM-DD")
+            }
+            return value
+        }
+        id = try c.decode(UUID.self, forKey: .id)
+        earliestWindowStart = try string(.previousWindowStart, .earliestWindowStart)
+        earliestWindowEnd = try string(.previousWindowEnd, .earliestWindowEnd)
+        latestWindowStart = try string(.currentWindowStart, .latestWindowStart)
+        latestWindowEnd = try string(.currentWindowEnd, .latestWindowEnd)
+        earliestAverageKG = try c.decodeIfPresent(Double.self, forKey: .previousAverageKG)
+            ?? c.decodeIfPresent(Double.self, forKey: .earliestAverageKG)
+        latestAverageKG = try c.decodeIfPresent(Double.self, forKey: .currentAverageKG)
+            ?? c.decodeIfPresent(Double.self, forKey: .latestAverageKG)
+        earliestPointCount = try c.decodeIfPresent(Int.self, forKey: .previousPointCount)
+            ?? c.decode(Int.self, forKey: .earliestPointCount)
+        latestPointCount = try c.decodeIfPresent(Int.self, forKey: .currentPointCount)
+            ?? c.decode(Int.self, forKey: .latestPointCount)
+        days = try c.decodeIfPresent(Double.self, forKey: .days)
+        goalType = try c.decode(GoalType.self, forKey: .goalType)
+        targetWeeklyDeltaKG = try c.decodeIfPresent(Double.self, forKey: .weeklyTargetDeltaKG)
+            ?? c.decode(Double.self, forKey: .targetWeeklyDeltaKG)
+        actualWeeklyDeltaKG = try c.decodeIfPresent(Double.self, forKey: .actualWeeklyDelta)
+            ?? c.decodeIfPresent(Double.self, forKey: .actualWeeklyDeltaKG)
+        deviationKGPerWeek = try c.decodeIfPresent(Double.self, forKey: .deviation)
+            ?? c.decodeIfPresent(Double.self, forKey: .deviationKGPerWeek)
+        suggestedAdjustmentKcal = try c.decodeIfPresent(Double.self, forKey: .suggestedAdjustmentKcal)
+        appliedAdjustmentKcal = try c.decodeIfPresent(Double.self, forKey: .appliedAdjustmentKcal)
+        status = try c.decode(DietEvaluationStatus.self, forKey: .status)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        decidedAt = try c.decodeIfPresent(Date.self, forKey: .decidedAt)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(earliestWindowStart, forKey: .previousWindowStart)
+        try c.encode(earliestWindowEnd, forKey: .previousWindowEnd)
+        try c.encode(latestWindowStart, forKey: .currentWindowStart)
+        try c.encode(latestWindowEnd, forKey: .currentWindowEnd)
+        try c.encode(earliestAverageKG ?? 0, forKey: .previousAverageKG)
+        try c.encode(latestAverageKG ?? 0, forKey: .currentAverageKG)
+        try c.encode(earliestPointCount, forKey: .previousPointCount)
+        try c.encode(latestPointCount, forKey: .currentPointCount)
+        try c.encode(days ?? 0, forKey: .days)
+        try c.encode(goalType, forKey: .goalType)
+        try c.encode(targetWeeklyDeltaKG, forKey: .weeklyTargetDeltaKG)
+        try c.encode(actualWeeklyDeltaKG ?? 0, forKey: .actualWeeklyDelta)
+        try c.encode(deviationKGPerWeek ?? 0, forKey: .deviation)
+        try c.encode(suggestedAdjustmentKcal ?? 0, forKey: .suggestedAdjustmentKcal)
+        try c.encode(appliedAdjustmentKcal ?? 0, forKey: .appliedAdjustmentKcal)
+        try c.encode(status, forKey: .status)
+        try c.encode(createdAt, forKey: .createdAt)
+        try c.encodeIfPresent(decidedAt, forKey: .decidedAt)
+    }
+}
+
+struct DietCalibration: Codable, Hashable, Identifiable {
+    var id: String { "dietCalibration" }
+    var currentAdjustmentKcal: Double = 0
+    var evaluations: [DietEvaluation] = []
+
+    private enum CodingKeys: String, CodingKey {
+        case currentAdjustmentKcal, evaluations
+    }
+
+    init(currentAdjustmentKcal: Double = 0, evaluations: [DietEvaluation] = []) {
+        self.currentAdjustmentKcal = currentAdjustmentKcal
+        self.evaluations = evaluations
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        currentAdjustmentKcal = try c.decodeIfPresent(Double.self, forKey: .currentAdjustmentKcal) ?? 0
+        evaluations = try c.decodeIfPresent([DietEvaluation].self, forKey: .evaluations) ?? []
+    }
+}
+
 // MARK: - AI 聊天
 
 struct ChatMessage: Codable, Hashable, Identifiable {
@@ -318,7 +465,7 @@ struct AIUpdatePayload: Codable {
 // MARK: - 根数据
 
 struct AppData: Codable {
-    static let currentSchemaVersion = 2
+    static let currentSchemaVersion = 3
 
     var schemaVersion: Int? = AppData.currentSchemaVersion
     var createdAt: Date? = Date()
@@ -331,6 +478,7 @@ struct AppData: Codable {
     var foods: [Food] = []
     var exercises: [ExerciseDef] = []
     var dietLogs: [DietLog] = []
+    var dietCalibration: DietCalibration = DietCalibration()
     /// 三大项极限重量（手填优先）
     var bigThree: BigThreeMax? = nil
     /// 用户在对话中表达的长期偏好与约束，会注入 AI 上下文
@@ -341,8 +489,8 @@ struct AppData: Codable {
          profile: UserProfile = UserProfile(), goal: Goal = Goal(),
          workouts: [WorkoutSession] = [], plannedWorkouts: [PlannedWorkout] = [],
          bodyMetrics: [BodyMetric] = [], foods: [Food] = [], exercises: [ExerciseDef] = [],
-         dietLogs: [DietLog] = [], bigThree: BigThreeMax? = nil,
-         coachNotes: [String]? = nil) {
+         dietLogs: [DietLog] = [], dietCalibration: DietCalibration = DietCalibration(),
+         bigThree: BigThreeMax? = nil, coachNotes: [String]? = nil) {
         self.schemaVersion = schemaVersion
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -354,13 +502,14 @@ struct AppData: Codable {
         self.foods = foods
         self.exercises = exercises
         self.dietLogs = dietLogs
+        self.dietCalibration = dietCalibration
         self.bigThree = bigThree
         self.coachNotes = coachNotes
     }
 
     private enum CodingKeys: String, CodingKey {
         case schemaVersion, createdAt, updatedAt, profile, goal, workouts, plannedWorkouts
-        case bodyMetrics, foods, exercises, dietLogs, bigThree, coachNotes
+        case bodyMetrics, foods, exercises, dietLogs, dietCalibration, bigThree, coachNotes
     }
 
     init(from decoder: Decoder) throws {
@@ -376,6 +525,7 @@ struct AppData: Codable {
         foods = try c.decodeIfPresent([Food].self, forKey: .foods) ?? []
         exercises = try c.decodeIfPresent([ExerciseDef].self, forKey: .exercises) ?? []
         dietLogs = try c.decodeIfPresent([DietLog].self, forKey: .dietLogs) ?? []
+        dietCalibration = try c.decodeIfPresent(DietCalibration.self, forKey: .dietCalibration) ?? DietCalibration()
         bigThree = try c.decodeIfPresent(BigThreeMax.self, forKey: .bigThree)
         coachNotes = try c.decodeIfPresent([String].self, forKey: .coachNotes)
     }

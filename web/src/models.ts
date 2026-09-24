@@ -1,12 +1,20 @@
 // 对应 Mac 版 Sources/FitTrack/Models.swift。
 // 字段名与 JSON 结构必须和 Swift 版逐字一致：两边的导出文件要能互相导入。
-// 唯一的表示差异是日期 —— Swift 用 Date，这里用 JS Date，序列化时统一成秒精度 ISO8601。
+// 时间点字段在 Web 使用 JS Date 并序列化为秒精度 ISO8601；DietEvaluation 的窗口字段使用本地自然日 YYYY-MM-DD 字符串。
 
 // MARK: - 枚举
 
-export const CURRENT_SCHEMA_VERSION = 2
+export const CURRENT_SCHEMA_VERSION = 3
 
 export type GoalType = 'bulk' | 'cut' | 'maintain'
+
+export type DietEvaluationStatus =
+  | 'insufficient'
+  | 'withinRange'
+  | 'deviating'
+  | 'suggested'
+  | 'accepted'
+  | 'dismissed'
 
 export const GOAL_TYPES: GoalType[] = ['bulk', 'cut', 'maintain']
 
@@ -141,6 +149,33 @@ export interface DietLog {
   imageName?: string | null
 }
 
+export interface DietEvaluation {
+  id: string
+  previousWindowStart: string
+  previousWindowEnd: string
+  currentWindowStart: string
+  currentWindowEnd: string
+  previousAverageKG: number
+  currentAverageKG: number
+  previousPointCount: number
+  currentPointCount: number
+  days: number
+  goalType: GoalType
+  weeklyTargetDeltaKG: number
+  actualWeeklyDelta: number
+  deviation: number
+  suggestedAdjustmentKcal: number
+  appliedAdjustmentKcal: number
+  status: DietEvaluationStatus
+  createdAt: Date
+  decidedAt?: Date | null
+}
+
+export interface DietCalibration {
+  currentAdjustmentKcal: number
+  evaluations: DietEvaluation[]
+}
+
 // MARK: - AI 聊天
 
 export interface ChatMessage {
@@ -257,6 +292,7 @@ export interface AppData {
   foods: Food[]
   exercises: ExerciseDef[]
   dietLogs: DietLog[]
+  dietCalibration?: DietCalibration | null
   /** 三大项极限重量（手填优先） */
   bigThree?: BigThreeMax | null
   /** 用户在对话中表达的长期偏好与约束，会注入 AI 上下文 */
@@ -274,6 +310,7 @@ export function emptyAppData(): AppData {
     foods: [],
     exercises: [],
     dietLogs: [],
+    dietCalibration: { currentAdjustmentKcal: 0, evaluations: [] },
     bigThree: null,
     coachNotes: null,
   }
@@ -289,7 +326,14 @@ export function toISO(d: Date): string {
   return d.toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 
-const DATE_FIELDS = new Set(['date', 'createdAt', 'updatedAt', 'deletedAt', 'evaluatedAt', 'decidedAt'])
+const DATE_FIELDS = new Set([
+  'date',
+  'createdAt',
+  'updatedAt',
+  'deletedAt',
+  'evaluatedAt',
+  'decidedAt',
+])
 
 /** 只还原模型约定的日期字段，避免误伤内容里像日期的字符串。 */
 function reviveDates(_key: string, value: unknown): unknown {

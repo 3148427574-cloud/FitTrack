@@ -86,6 +86,166 @@ struct RestoreOracle {
         require(merged.data.createdAt == localCreated && merged.data.updatedAt == parsed.data.updatedAt,
                 "merge 时间戳规则")
 
-        print("restore oracle passed: schema, dates, missing fields, arrays, validation, legacy defaults, parent and nested duplicates, timestamps")
+        require(parsed.data.dietCalibration.currentAdjustmentKcal == 0
+                    && parsed.data.dietCalibration.evaluations.isEmpty,
+                "v1/v2 缺校准字段时使用 0 和空历史")
+        let evaluationID = "44444444-4444-4444-4444-444444444444"
+        let calibrated = complete.replacingOccurrences(
+            of: "\"dietLogs\": [], \"chat\": []",
+            with: "\"dietLogs\": [], \"dietCalibration\":{\"currentAdjustmentKcal\":100,\"evaluations\":[{\"id\":\"\(evaluationID)\",\"earliestWindowStart\":\"2026-09-01\",\"earliestWindowEnd\":\"2026-09-07\",\"latestWindowStart\":\"2026-09-08\",\"latestWindowEnd\":\"2026-09-14\",\"earliestAverageKG\":70,\"latestAverageKG\":70.4,\"earliestPointCount\":7,\"latestPointCount\":7,\"days\":7,\"goalType\":\"bulk\",\"targetWeeklyDeltaKG\":0.25,\"actualWeeklyDeltaKG\":0.4,\"deviationKGPerWeek\":0.15,\"suggestedAdjustmentKcal\":-100,\"status\":\"suggested\",\"createdAt\":\"2026-09-21T12:00:00Z\"}]}, \"chat\": []")
+        let calibratedPreview = try BackupRecovery.parse(calibrated)
+        require(calibratedPreview.canApply
+                    && calibratedPreview.data.dietCalibration.currentAdjustmentKcal == 100
+                    && calibratedPreview.data.dietCalibration.evaluations.first?.status == .suggested,
+                "校准模型应完整恢复")
+        let encodedEvaluation = try JSONEncoder().encode(calibratedPreview.data.dietCalibration.evaluations[0])
+        let encodedObject = try JSONSerialization.jsonObject(with: encodedEvaluation) as! [String: Any]
+        require(encodedObject["currentWindowEnd"] as? String == "2026-09-14",
+                "窗口字段必须以本地 YYYY-MM-DD 字符串持久化")
+        let isoWindow = calibrated.replacingOccurrences(of: "\"latestWindowEnd\":\"2026-09-14\"",
+                                                          with: "\"latestWindowEnd\":\"2026-09-14T00:00:00Z\"")
+        let isoWindowPreview = try BackupRecovery.parse(isoWindow)
+        require(!isoWindowPreview.canApply,
+                "Web v3 窗口字符串带 ISO 时间时必须拒绝，不能截取日期掩盖错误")
+        let calibrationMerged = try BackupRecovery.candidate(from: calibratedPreview, local: AppData(),
+                                                               localChat: [], mode: .merge, policy: .backup)
+        require(calibrationMerged.data.dietCalibration.evaluations.count == 1,
+                "校准历史应参与 merge")
+        var sameWindowDifferentID = calibratedPreview.data.dietCalibration.evaluations[0]
+        sameWindowDifferentID.id = UUID()
+        require(DietCalibrationEngine.matchesWindowSnapshot(sameWindowDifferentID,
+                                                            windowEnd: "2026-09-14", goal: parsed.data.goal) == false,
+                "目标类型或周目标快照不同不能误判重复")
+        let calibratedGoal = Goal(type: .bulk, targetWeightKG: 75, targetBodyFatPct: nil,
+                                  weeklyTargetDeltaKG: 0.25)
+        require(sameWindowDifferentID.id != calibratedPreview.data.dietCalibration.evaluations[0].id
+                    && DietCalibrationEngine.matchesWindowSnapshot(sameWindowDifferentID,
+                                                                   windowEnd: "2026-09-14", goal: calibratedGoal),
+                "相同窗口终点、目标类型和周目标快照必须判为重复，与 UUID 无关")
+        let accepted = AppStore.applyingCalibrationAcceptance(to: calibratedPreview.data,
+                                                               id: UUID(uuidString: evaluationID)!)
+        let acceptedTwice = AppStore.applyingCalibrationAcceptance(to: accepted.0,
+                                                                    id: UUID(uuidString: evaluationID)!)
+        require(accepted.1 && accepted.0.dietCalibration.currentAdjustmentKcal == 0
+                    && !acceptedTwice.1 && acceptedTwice.0.dietCalibration.currentAdjustmentKcal == 0,
+                "重复接受同一建议必须幂等")
+
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(secondsFromGMT: 0)!
+        let start = ISO8601DateFormatter().date(from: "2026-09-01T08:00:00Z")!
+        func metrics(lateDelta: Double, pointsPerWindow: Int = 7) -> [BodyMetric] {
+            var values: [BodyMetric] = []
+            for day in 0..<14 where day % 7 < pointsPerWindow {
+                let date = utc.date(byAdding: .day, value: day, to: start)!
+                values.append(BodyMetric(date: date, weightKG: 70 + (day >= 7 ? lateDelta : 0)))
+            }
+            return values
+        }
+        var duplicates = metrics(lateDelta: 0.4)
+        duplicates.append(BodyMetric(date: utc.date(byAdding: .hour, value: 1, to: start)!, weightKG: 71))
+        duplicates.append(BodyMetric(date: utc.date(byAdding: .hour, value: 2, to: start)!, weightKG: 20))
+        require(DietCalibrationEngine.dailyWeights(duplicates, calendar: utc).first?.weightKG == 71,
+                "同日本地自然日应取最后一条有效体重并过滤异常范围")
+        require(DietCalibrationEngine.movingAverages(metrics(lateDelta: 0.4, pointsPerWindow: 3), calendar: utc).isEmpty,
+                "7 日窗口 3 点不得生成移动平均")
+        require(!DietCalibrationEngine.movingAverages(metrics(lateDelta: 0.4, pointsPerWindow: 4), calendar: utc).isEmpty,
+                "7 日窗口 4 点应生成移动平均")
+
+        let bulk = Goal(type: .bulk, targetWeightKG: 75, targetBodyFatPct: nil, weeklyTargetDeltaKG: 0.25)
+        let now = utc.date(byAdding: .day, value: 13, to: start)!
+        let below = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.399), goal: bulk,
+                                                      history: [], currentAdjustmentKcal: 0,
+                                                      now: now, calendar: utc)
+        let threshold = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.4), goal: bulk,
+                                                          history: [], currentAdjustmentKcal: 0,
+                                                          now: now, calendar: utc)
+        require(below.status == .withinRange && threshold.status == .deviating,
+                "0.149 不偏离，0.150 达到偏离阈值")
+        require(DietCalibrationEngine.formalEvaluation(metrics: metrics(lateDelta: 0.4), goal: bulk,
+                                                       history: [threshold], currentAdjustmentKcal: 0,
+                                                       now: now, calendar: utc) == nil,
+                "formal evaluation 对相同窗口终点、目标类型和周目标快照必须防重")
+        var prior = threshold
+        prior.createdAt = now
+        prior.latestWindowEnd = "2026-09-07"
+        let suggested = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.4), goal: bulk,
+                                                          history: [prior], currentAdjustmentKcal: 0,
+                                                          now: now, calendar: utc)
+        require(suggested.status == .suggested && suggested.suggestedAdjustmentKcal == -100,
+                "窗口终点恰好相隔 7 个本地自然日时，连续同向偏离应建议 100 kcal")
+        var staleWindow = prior
+        staleWindow.latestWindowEnd = "2026-09-06"
+        staleWindow.createdAt = utc.date(byAdding: .day, value: -7, to: now)!
+        require(DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.4), goal: bulk,
+                                                  history: [staleWindow], currentAdjustmentKcal: 0,
+                                                  now: now, calendar: utc).status == .deviating,
+                "createdAt 相隔 7 天但窗口终点不相隔 7 天时不得视为连续")
+        let cut = Goal(type: .cut, targetWeightKG: 65, targetBodyFatPct: nil, weeklyTargetDeltaKG: 0.25)
+        var cutPrior = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: -0.4), goal: cut,
+                                                         history: [], currentAdjustmentKcal: 0,
+                                                         now: now, calendar: utc)
+        cutPrior.createdAt = now
+        cutPrior.latestWindowEnd = "2026-09-07"
+        let cutSuggested = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: -0.4), goal: cut,
+                                                             history: [cutPrior], currentAdjustmentKcal: 0,
+                                                             now: now, calendar: utc)
+        require(cutSuggested.suggestedAdjustmentKcal == 100,
+                "减脂过快且连续同向偏离应建议增加热量")
+        var changedGoalPrior = prior
+        changedGoalPrior.targetWeeklyDeltaKG = 0.2
+        let changedGoal = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.4), goal: bulk,
+                                                            history: [changedGoalPrior], currentAdjustmentKcal: 0,
+                                                            now: now, calendar: utc)
+        require(changedGoal.status == .deviating && changedGoal.suggestedAdjustmentKcal == nil,
+                "目标周变化快照改变后旧连续状态不得参与")
+        let strong = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.55), goal: bulk,
+                                                       history: [prior], currentAdjustmentKcal: 0,
+                                                       now: now, calendar: utc)
+        require(strong.suggestedAdjustmentKcal == -150, "当前偏离达到 0.30 应建议 150 kcal")
+        prior.deviationKGPerWeek = -0.2
+        let reversed = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.4), goal: bulk,
+                                                         history: [prior], currentAdjustmentKcal: 0,
+                                                         now: now, calendar: utc)
+        require(reversed.status == .deviating && reversed.suggestedAdjustmentKcal == nil,
+                "方向反转应重置连续状态")
+        let maintain = Goal(type: .maintain, targetWeightKG: 70, targetBodyFatPct: nil, weeklyTargetDeltaKG: 0.25)
+        require(DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 1), goal: maintain,
+                                                  history: [prior], currentAdjustmentKcal: 0,
+                                                  now: now, calendar: utc).suggestedAdjustmentKcal == nil,
+                "维持目标不产生建议")
+        var capPrior = threshold
+        capPrior.latestWindowEnd = "2026-09-07"
+        let limited = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.4), goal: bulk,
+                                                        history: [capPrior], currentAdjustmentKcal: -900,
+                                                        now: now, calendar: utc)
+        require(limited.suggestedAdjustmentKcal == nil, "总调整余量不足 100 时不得建议")
+        let reducedStrong = DietCalibrationEngine.evaluation(metrics: metrics(lateDelta: 0.55), goal: bulk,
+                                                              history: [capPrior], currentAdjustmentKcal: -850,
+                                                              now: now, calendar: utc)
+        require(reducedStrong.suggestedAdjustmentKcal == -100,
+                "150 kcal 建议方向仅剩 100...149 kcal 余量时应降为正常 100 kcal")
+        let profile = UserProfile(sex: "male", age: 25, heightCM: 175, activityLevel: 1.2, trainingDaysPerWeek: 4)
+        require(DietPlanner.strategy(profile: profile, goal: bulk, weightKG: 30,
+                                     calibrationKcal: -700).targetKcal == 1200,
+                "最终热量必须保持 1200 下限")
+        require(DietPlanner.targets(profile: profile, goal: bulk, weightKG: 70)
+                    == DietPlanner.targets(profile: profile, goal: bulk, weightKG: 70, calibrationKcal: 0),
+                "零校准必须保持旧结果")
+
+        var losAngeles = Calendar(identifier: .gregorian)
+        losAngeles.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let dstStart = ISO8601DateFormatter().date(from: "2026-03-02T16:00:00Z")!
+        var dstMetrics: [BodyMetric] = []
+        for day in 0..<14 {
+            let date = losAngeles.date(byAdding: .day, value: day, to: dstStart)!
+            dstMetrics.append(BodyMetric(date: date, weightKG: 70 + (day >= 7 ? 0.4 : 0)))
+        }
+        let dstEvaluation = DietCalibrationEngine.evaluation(metrics: dstMetrics, goal: bulk,
+                                                              history: [], currentAdjustmentKcal: 0,
+                                                              now: dstMetrics.last!.date, calendar: losAngeles)
+        require(dstEvaluation.days == 7 && dstEvaluation.status == .deviating,
+                "跨夏令时仍应按本地自然日得到 7 天平均日期差")
+
+        print("restore/calibration oracle passed")
     }
 }

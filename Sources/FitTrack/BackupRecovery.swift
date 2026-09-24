@@ -160,6 +160,13 @@ enum BackupRecovery {
                                      issues: &issues, skipped: &skipped, validate: validate)
         data.dietLogs = decodeItems(DietLog.self, key: "dietLogs", object: object,
                                     issues: &issues, skipped: &skipped, validate: validate)
+        if let value = object["dietCalibration"] {
+            if let calibration = decode(DietCalibration.self, value), validate(calibration) {
+                data.dietCalibration = calibration
+            } else {
+                issues.append(.init(path: "dietCalibration", message: "字段损坏或包含无效值", blocking: true))
+            }
+        }
         var chat = decodeItems(ChatMessage.self, key: "chat", object: object,
                                issues: &issues, skipped: &skipped, validate: { _ in true })
 
@@ -178,6 +185,9 @@ enum BackupRecovery {
         data.foods = unique(data.foods, key: \ .id, path: "foods", issues: &issues, skipped: &skipped)
         data.exercises = unique(data.exercises, key: \ .id, path: "exercises", issues: &issues, skipped: &skipped)
         data.dietLogs = unique(data.dietLogs, key: \ .id, path: "dietLogs", issues: &issues, skipped: &skipped)
+        data.dietCalibration.evaluations = unique(data.dietCalibration.evaluations, key: \ .id,
+                                                  path: "dietCalibration.evaluations",
+                                                  issues: &issues, skipped: &skipped)
 
         return BackupPreview(data: data, chat: chat, schemaVersion: version,
                              presentFields: fields, issues: issues, skipped: skipped)
@@ -193,7 +203,7 @@ enum BackupRecovery {
         if mode == .replace {
             stats.added = preview.data.workouts.count + preview.data.plannedWorkouts.count
                 + preview.data.bodyMetrics.count + preview.data.foods.count + preview.data.exercises.count
-                + preview.data.dietLogs.count + preview.chat.count
+                + preview.data.dietLogs.count + preview.data.dietCalibration.evaluations.count + preview.chat.count
             return RestoreCandidate(data: preview.data, chat: preview.chat, stats: stats, issues: preview.issues)
         }
 
@@ -208,6 +218,15 @@ enum BackupRecovery {
         result.foods = merge(local.foods, preview.data.foods, policy: policy, stats: &stats)
         result.exercises = merge(local.exercises, preview.data.exercises, policy: policy, stats: &stats)
         result.dietLogs = merge(local.dietLogs, preview.data.dietLogs, policy: policy, stats: &stats)
+        if preview.presentFields.contains("dietCalibration") {
+            result.dietCalibration.currentAdjustmentKcal = mergeValue(
+                local.dietCalibration.currentAdjustmentKcal,
+                preview.data.dietCalibration.currentAdjustmentKcal,
+                present: true, policy: policy, stats: &stats)
+            result.dietCalibration.evaluations = merge(local.dietCalibration.evaluations,
+                                                       preview.data.dietCalibration.evaluations,
+                                                       policy: policy, stats: &stats)
+        }
         result.bigThree = mergeOptional(local.bigThree, preview.data.bigThree,
                                         present: preview.presentFields.contains("bigThree"), policy: policy, stats: &stats)
         result.coachNotes = mergeOptional(local.coachNotes, preview.data.coachNotes,
@@ -340,6 +359,17 @@ enum BackupRecovery {
     private static func validate(_ value: DietLog) -> Bool {
         nonnegative(value.amountG, value.kcal, value.protein, value.carb, value.fat)
             && (value.source == nil || value.source == "manual" || value.source == "image")
+    }
+    private static func validate(_ value: DietCalibration) -> Bool {
+        value.currentAdjustmentKcal.isFinite && abs(value.currentAdjustmentKcal) <= 700
+            && hasUniqueIDs(value.evaluations) && value.evaluations.allSatisfy(validate)
+    }
+    private static func validate(_ value: DietEvaluation) -> Bool {
+        value.earliestPointCount >= 0 && value.latestPointCount >= 0
+            && finite(value.earliestAverageKG, value.latestAverageKG, value.days,
+                      value.targetWeeklyDeltaKG, value.actualWeeklyDeltaKG,
+                      value.deviationKGPerWeek, value.suggestedAdjustmentKcal,
+                      value.appliedAdjustmentKcal)
     }
     private static func validate(_ value: BigThreeMax) -> Bool {
         nonnegative(value.benchKG, value.squatKG, value.deadliftKG)

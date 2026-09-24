@@ -376,6 +376,59 @@ final class AppStore: ObservableObject {
         save()
     }
 
+    @discardableResult
+    func recordEvaluation(now: Date = Date(), calendar: Calendar = .current) -> DietEvaluation? {
+        let history = data.dietCalibration.evaluations
+        guard let evaluation = DietCalibrationEngine.formalEvaluation(
+            metrics: data.bodyMetrics, goal: data.goal, history: history,
+            currentAdjustmentKcal: data.dietCalibration.currentAdjustmentKcal,
+            now: now, calendar: calendar
+        ) else { return nil }
+        data.dietCalibration.evaluations.append(evaluation)
+        save()
+        return evaluation
+    }
+
+    @discardableResult
+    func acceptCalibrationSuggestion(id: UUID, now: Date = Date()) -> Bool {
+        let result = Self.applyingCalibrationAcceptance(to: data, id: id, now: now)
+        guard result.1 else { return false }
+        data = result.0
+        save()
+        return true
+    }
+
+    @discardableResult
+    func dismissSuggestion(id: UUID, now: Date = Date()) -> Bool {
+        guard let index = data.dietCalibration.evaluations.firstIndex(where: { $0.id == id }),
+              data.dietCalibration.evaluations[index].status == .suggested else { return false }
+        data.dietCalibration.evaluations[index].status = .dismissed
+        data.dietCalibration.evaluations[index].decidedAt = now
+        save()
+        return true
+    }
+
+    static func applyingCalibrationAcceptance(to input: AppData, id: UUID,
+                                              now: Date = Date()) -> (AppData, Bool) {
+        var output = input
+        guard let index = output.dietCalibration.evaluations.firstIndex(where: { $0.id == id }),
+              output.dietCalibration.evaluations[index].status == .suggested,
+              let adjustment = output.dietCalibration.evaluations[index].suggestedAdjustmentKcal else {
+            return (input, false)
+        }
+        let base = DietPlanner.baseAdjustment(goal: output.goal)
+        let current = output.dietCalibration.currentAdjustmentKcal
+        let total = base + current
+        let remaining = adjustment > 0 ? 700 - total : total + 700
+        guard remaining + 1e-12 >= 100 else { return (input, false) }
+        let applied = adjustment > 0 ? min(adjustment, remaining) : -min(abs(adjustment), remaining)
+        output.dietCalibration.currentAdjustmentKcal = current + applied
+        output.dietCalibration.evaluations[index].appliedAdjustmentKcal = applied
+        output.dietCalibration.evaluations[index].status = .accepted
+        output.dietCalibration.evaluations[index].decidedAt = now
+        return (output, true)
+    }
+
     static func defaultFileURL() -> URL {
         let fm = FileManager.default
         let dir = (fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? fm.temporaryDirectory)

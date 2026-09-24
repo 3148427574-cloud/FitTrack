@@ -14,6 +14,7 @@ const IDS = {
   exercise: '77777777-7777-4777-8777-777777777777',
   diet: '88888888-8888-4888-8888-888888888888',
   chat: '99999999-9999-4999-8999-999999999999',
+  evaluation: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
 }
 
 function fullData(): AppData {
@@ -39,6 +40,30 @@ function backup(data = fullData(), version: number | null = CURRENT_SCHEMA_VERSI
   if (version == null) delete value.schemaVersion
   else value.schemaVersion = version
   return encodeJSON(value)
+}
+
+function evaluation() {
+  return {
+    id: IDS.evaluation,
+    previousWindowStart: '2026-01-01',
+    previousWindowEnd: '2026-01-07',
+    currentWindowStart: '2026-01-08',
+    currentWindowEnd: '2026-01-14',
+    previousAverageKG: 70,
+    currentAverageKG: 70,
+    previousPointCount: 7,
+    currentPointCount: 7,
+    days: 7,
+    goalType: 'bulk' as const,
+    weeklyTargetDeltaKG: 0.25,
+    actualWeeklyDelta: 0,
+    deviation: -0.25,
+    suggestedAdjustmentKcal: 100,
+    appliedAdjustmentKcal: 0,
+    status: 'suggested' as const,
+    createdAt: new Date('2026-01-14T08:00:00Z'),
+    decidedAt: null,
+  }
 }
 
 describe('完整备份解析与迁移', () => {
@@ -100,7 +125,7 @@ describe('完整备份解析与迁移', () => {
   it('当前完整备份 roundtrip 恢复所有字段、chat、日期和 DietLog 快照', () => {
     const preview = previewFullBackup(backup())!
     expect(preview.valid).toBe(true)
-    expect(preview.counts).toEqual({ workouts: 1, plannedWorkouts: 1, bodyMetrics: 1, foods: 1, exercises: 1, dietLogs: 1, chat: 1 })
+    expect(preview.counts).toEqual({ workouts: 1, plannedWorkouts: 1, bodyMetrics: 1, foods: 1, exercises: 1, dietLogs: 1, dietEvaluations: 0, chat: 1 })
     expect(preview.data).toEqual(fullData())
     expect(preview.data?.createdAt).toBeInstanceOf(Date)
     expect(preview.data?.dietLogs[0]).toMatchObject({ id: IDS.diet, kcal: 150, protein: 15, carb: 7.5, fat: 3 })
@@ -110,6 +135,42 @@ describe('完整备份解析与迁移', () => {
     const preview = previewFullBackup(backup(fullData(), CURRENT_SCHEMA_VERSION + 1))!
     expect(preview.valid).toBe(false)
     expect(preview.issues.some((issue) => issue.path === 'schemaVersion')).toBe(true)
+  })
+
+  it('迁移 Swift 旧评估别名为当前字段和本地自然日字符串', () => {
+    const old = evaluation() as Record<string, unknown>
+    old.earliestWindowStart = old.previousWindowStart
+    old.earliestWindowEnd = old.previousWindowEnd
+    old.latestWindowStart = old.currentWindowStart
+    old.latestWindowEnd = old.currentWindowEnd
+    old.targetWeeklyDeltaKG = old.weeklyTargetDeltaKG
+    old.actualWeeklyDeltaKG = old.actualWeeklyDelta
+    old.deviationKGPerWeek = old.deviation
+    for (const key of ['previousWindowStart', 'previousWindowEnd', 'currentWindowStart', 'currentWindowEnd', 'weeklyTargetDeltaKG', 'actualWeeklyDelta', 'deviation']) delete old[key]
+    const raw = decodeJSON<Record<string, unknown>>(backup())
+    raw.dietCalibration = { currentAdjustmentKcal: 0, evaluations: [old] }
+    const preview = previewFullBackup(encodeJSON(raw))!
+    expect(preview.valid).toBe(true)
+    const expected = evaluation()
+    delete (expected as Partial<typeof expected>).decidedAt
+    expect(preview.data?.dietCalibration?.evaluations[0]).toMatchObject(expected)
+    expect(preview.data?.dietCalibration?.evaluations[0].currentWindowEnd).toBe('2026-01-14')
+  })
+
+  it('currentAdjustmentKcal 仅允许 [-700, 700]，超界为 blocking', () => {
+    for (const value of [-700, 700]) {
+      const raw = decodeJSON<Record<string, unknown>>(backup())
+      raw.dietCalibration = { currentAdjustmentKcal: value, evaluations: [] }
+      expect(previewFullBackup(encodeJSON(raw))?.valid).toBe(true)
+    }
+    for (const value of [-701, 701]) {
+      const raw = decodeJSON<Record<string, unknown>>(backup())
+      raw.dietCalibration = { currentAdjustmentKcal: value, evaluations: [] }
+      const preview = previewFullBackup(encodeJSON(raw))!
+      expect(preview.valid).toBe(false)
+      expect(preview.data).toBeNull()
+      expect(preview.issues).toContainEqual({ path: 'dietCalibration', message: 'currentAdjustmentKcal 超出 [-700, 700]' })
+    }
   })
 
   it('坏单条和大小写重复 id 跳过并报告，Foundation UUID 可用且归一为小写', () => {
@@ -164,6 +225,19 @@ describe('完整备份解析与迁移', () => {
 })
 
 describe('完整备份合并', () => {
+  it('合并前按小写 ID 去重本地数组，保留第一条并计 ignored', () => {
+    const local = fullData()
+    local.foods = [
+      { ...local.foods[0], name: '第一条' },
+      { ...local.foods[0], id: local.foods[0].id.toUpperCase(), name: '重复条' },
+    ]
+    const raw = decodeJSON<Record<string, unknown>>(backup())
+    raw.foods = []
+    const plan = planFullRestore(previewFullBackup(encodeJSON(raw))!, local, [], 'merge', 'local')
+    expect(plan.data.foods).toEqual([{ ...local.foods[0], name: '第一条' }])
+    expect(plan.stats.ignored).toBeGreaterThanOrEqual(1)
+  })
+
   it('同一备份重复 merge 幂等', () => {
     const preview = previewFullBackup(backup())!
     const first = planFullRestore(preview, emptyAppData(), [], 'merge', 'backup')
@@ -214,7 +288,7 @@ describe('完整备份合并', () => {
     expect(plan.data.bigThree).toEqual({ benchKG: 200 })
     expect(plan.data.coachNotes).toEqual(['本地'])
     expect(plan.stats.updated).toBe(1)
-    expect(plan.stats.ignored).toBe(9)
+    expect(plan.stats.ignored).toBe(10)
     expect(plan.data.createdAt).toEqual(local.createdAt)
     expect(plan.data.updatedAt).toEqual(local.updatedAt)
   })

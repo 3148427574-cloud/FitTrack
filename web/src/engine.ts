@@ -4,6 +4,8 @@
 import type {
   AppData,
   BigThreeMax,
+  BodyMetric,
+  DietEvaluation,
   DietLog,
   Food,
   Goal,
@@ -113,11 +115,201 @@ export function dailyCalorieAdjustment(goal: Goal): number {
   return goal.type === 'bulk' ? limited : -limited
 }
 
+export interface DailyWeightPoint {
+  date: Date
+  weightKG: number
+}
+
+export interface WeightTrendPoint extends DailyWeightPoint {
+  pointCount: number
+}
+
+function localDayDate(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function localDayOrdinal(date: Date): number {
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000
+}
+
+function localDateKey(date: Date): string {
+  const year = String(date.getFullYear()).padStart(4, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function localDateKeyOrdinal(key: string): number {
+  const [year, month, day] = key.split('-').map(Number)
+  return Date.UTC(year, month - 1, day) / 86_400_000
+}
+
+function addLocalDays(date: Date, days: number): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days)
+}
+
+export function localCalendarDaysBetween(a: Date, b: Date): number {
+  return localDayOrdinal(b) - localDayOrdinal(a)
+}
+
+function localDateKeysBetween(a: string, b: string): number {
+  return localDateKeyOrdinal(b) - localDateKeyOrdinal(a)
+}
+
+/** 每个本地自然日仅保留时间最晚的一条有效体重。 */
+export function latestValidWeightPerLocalDay(metrics: BodyMetric[]): DailyWeightPoint[] {
+  const latest = new Map<number, BodyMetric>()
+  for (const metric of metrics) {
+    if (!Number.isFinite(metric.weightKG) || metric.weightKG < 30 || metric.weightKG > 200) continue
+    const key = localDayOrdinal(metric.date)
+    const old = latest.get(key)
+    if (old == null || metric.date.getTime() > old.date.getTime()) latest.set(key, metric)
+  }
+  return [...latest.values()]
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .map((metric) => ({ date: localDayDate(metric.date), weightKG: metric.weightKG }))
+}
+
+/** 以每个有记录的自然日为终点计算过去 7 个自然日均值，少于 4 点则不输出。 */
+export function sevenDayWeightTrend(metrics: BodyMetric[]): WeightTrendPoint[] {
+  const daily = latestValidWeightPerLocalDay(metrics)
+  return daily.flatMap((point) => {
+    const from = localDayOrdinal(point.date) - 6
+    const samples = daily.filter((item) => {
+      const day = localDayOrdinal(item.date)
+      return day >= from && day <= localDayOrdinal(point.date)
+    })
+    if (samples.length < 4) return []
+    return [{
+      date: point.date,
+      weightKG: samples.reduce((sum, item) => sum + item.weightKG, 0) / samples.length,
+      pointCount: samples.length,
+    }]
+  })
+}
+
+function averageWeight(points: DailyWeightPoint[]): number {
+  return points.reduce((sum, point) => sum + point.weightKG, 0) / points.length
+}
+
+function averageDay(points: DailyWeightPoint[]): number {
+  return points.reduce((sum, point) => sum + localDayOrdinal(point.date), 0) / points.length
+}
+
+const COMPARISON_EPSILON = 1e-12
+
+function sameGoalSnapshot(evaluation: DietEvaluation, goal: Goal): boolean {
+  return evaluation.goalType === goal.type &&
+    Math.abs(evaluation.weeklyTargetDeltaKG - goal.weeklyTargetDeltaKG) <= COMPARISON_EPSILON
+}
+
+function reachesThreshold(value: number, threshold: number): boolean {
+  return Math.abs(value) + COMPARISON_EPSILON >= threshold
+}
+
+function deviationDirection(deviation: number): number {
+  return deviation < 0 ? -1 : deviation > 0 ? 1 : 0
+}
+
+export interface DietEvaluationInput {
+  metrics: BodyMetric[]
+  goal: Goal
+  history: DietEvaluation[]
+  currentAdjustmentKcal: number
+  id: string
+  createdAt?: Date
+}
+
+/** 创建一次正式评估；距离上次评估不足 7 个本地自然日时返回 null。 */
+export function createDietEvaluation(input: DietEvaluationInput): DietEvaluation | null {
+  const createdAt = input.createdAt ?? new Date()
+  const history = [...input.history].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+
+  const daily = latestValidWeightPerLocalDay(input.metrics)
+  const latest = daily[daily.length - 1]
+  if (latest == null) return null
+  const currentWindowEnd = localDateKey(latest.date)
+  if (history.some((item) =>
+    item.currentWindowEnd === currentWindowEnd && sameGoalSnapshot(item, input.goal),
+  )) return null
+  const currentWindowStartDate = addLocalDays(latest.date, -6)
+  const previousWindowStartDate = addLocalDays(latest.date, -13)
+  const previousWindowEndDate = addLocalDays(latest.date, -7)
+  const current = daily.filter((point) => point.date >= currentWindowStartDate && point.date <= latest.date)
+  const previous = daily.filter((point) => point.date >= previousWindowStartDate && point.date <= previousWindowEndDate)
+  const enough = previous.length >= 4 && current.length >= 4
+  const previousAverageKG = enough ? averageWeight(previous) : 0
+  const currentAverageKG = enough ? averageWeight(current) : 0
+  const days = enough ? averageDay(current) - averageDay(previous) : 0
+  const actualWeeklyDelta = enough && days > 0
+    ? (currentAverageKG - previousAverageKG) * 7 / days
+    : 0
+  const signedTarget = input.goal.type === 'bulk'
+    ? Math.abs(input.goal.weeklyTargetDeltaKG)
+    : input.goal.type === 'cut'
+      ? -Math.abs(input.goal.weeklyTargetDeltaKG)
+      : 0
+  const deviation = actualWeeklyDelta - signedTarget
+  const outside = enough && input.goal.type !== 'maintain' && reachesThreshold(deviation, 0.15)
+
+  let status: DietEvaluation['status'] = enough
+    ? outside ? 'deviating' : 'withinRange'
+    : 'insufficient'
+  let suggestedAdjustmentKcal = 0
+  const prior = history[history.length - 1]
+  const consecutive = outside && prior != null && sameGoalSnapshot(prior, input.goal) &&
+    localDateKeysBetween(prior.currentWindowEnd, currentWindowEnd) === 7 &&
+    reachesThreshold(prior.deviation, 0.15) &&
+    deviationDirection(prior.deviation) === deviationDirection(deviation)
+  if (consecutive) {
+    const amount = reachesThreshold(deviation, 0.30) ? 150 : 100
+    const direction = deviation < 0 ? 1 : -1
+    const baseAdjustment = dailyCalorieAdjustment(input.goal)
+    const totalAdjustment = baseAdjustment + input.currentAdjustmentKcal
+    const remaining = direction > 0 ? 700 - totalAdjustment : totalAdjustment + 700
+    if (remaining >= 100) {
+      suggestedAdjustmentKcal = direction * Math.min(amount, remaining)
+      status = 'suggested'
+    }
+  }
+
+  return {
+    id: input.id,
+    previousWindowStart: localDateKey(previousWindowStartDate),
+    previousWindowEnd: localDateKey(previousWindowEndDate),
+    currentWindowStart: localDateKey(currentWindowStartDate),
+    currentWindowEnd,
+    previousAverageKG,
+    currentAverageKG,
+    previousPointCount: previous.length,
+    currentPointCount: current.length,
+    days,
+    goalType: input.goal.type,
+    weeklyTargetDeltaKG: input.goal.weeklyTargetDeltaKG,
+    actualWeeklyDelta,
+    deviation,
+    suggestedAdjustmentKcal,
+    appliedAdjustmentKcal: 0,
+    status,
+    createdAt,
+    decidedAt: null,
+  }
+}
+
+function totalCalorieAdjustment(goal: Goal, calibrationAdjustmentKcal: number): number {
+  return Math.min(700, Math.max(-700, dailyCalorieAdjustment(goal) + calibrationAdjustmentKcal))
+}
+
 export const DietPlanner = {
   /** 根据目标计算每日热量与三大营养素（单位：克，热量：千卡） */
-  targets(profile: UserProfile, goal: Goal, weightKG: number): Macros {
+  targets(
+    profile: UserProfile,
+    goal: Goal,
+    weightKG: number,
+    calibrationAdjustmentKcal = 0,
+  ): Macros {
     const tdee = TDEE.tdee(profile, weightKG)
-    const kcal = Math.max(1200, tdee + dailyCalorieAdjustment(goal))
+    const kcal = Math.max(1200, tdee + totalCalorieAdjustment(goal, calibrationAdjustmentKcal))
     const protein = (goal.type === 'maintain' ? 1.6 : 2.0) * weightKG
     const fat = 0.9 * weightKG
     const carbKcal = Math.max(0, kcal - protein * 4 - fat * 9)
@@ -219,9 +411,10 @@ export function dietTargetStrategy(
   profile: UserProfile,
   goal: Goal,
   weightKG: number,
+  calibrationAdjustmentKcal = 0,
 ): DietTargetStrategy {
   const tdee = TDEE.tdee(profile, weightKG)
-  const adjustmentKcal = dailyCalorieAdjustment(goal)
+  const adjustmentKcal = totalCalorieAdjustment(goal, calibrationAdjustmentKcal)
   const targetKcal = Math.max(1200, tdee + adjustmentKcal)
   const label = goal.type === 'bulk'
     ? `增肌盈余 ${fmt0(adjustmentKcal)} 千卡/天`

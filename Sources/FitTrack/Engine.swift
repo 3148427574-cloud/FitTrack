@@ -33,21 +33,25 @@ struct DietStrategy: Equatable {
 }
 
 enum DietPlanner {
-    /// 由每周目标体重变化换算每日能量盈余/缺口，绝对值限制在 150...700 千卡。
-    static func strategy(profile: UserProfile, goal: Goal, weightKG: Double) -> DietStrategy {
-        let tdee = TDEE.tdee(profile: profile, weightKG: weightKG)
+    static func baseAdjustment(goal: Goal) -> Double {
+        guard goal.type != .maintain else { return 0 }
         let delta = min(max(abs(goal.weeklyTargetDeltaKG) * 7700 / 7, 150), 700)
-        let adjustment: Double
+        return goal.type == .bulk ? delta : -delta
+    }
+
+    /// 由每周目标体重变化换算基础调整，再叠加校准；总调整绝对值不超过 700 千卡。
+    static func strategy(profile: UserProfile, goal: Goal, weightKG: Double,
+                         calibrationKcal: Double = 0) -> DietStrategy {
+        let tdee = TDEE.tdee(profile: profile, weightKG: weightKG)
+        let base = baseAdjustment(goal: goal)
+        let adjustment = min(max(base + calibrationKcal, -700), 700)
         let description: String
         switch goal.type {
         case .bulk:
-            adjustment = delta
-            description = String(format: "增肌盈余 %.0f 千卡/天", delta)
+            description = String(format: "增肌盈余 %.0f 千卡/天", adjustment)
         case .cut:
-            adjustment = -delta
-            description = String(format: "减脂缺口 %.0f 千卡/天", delta)
+            description = String(format: "减脂缺口 %.0f 千卡/天", abs(adjustment))
         case .maintain:
-            adjustment = 0
             description = "维持热量，不设置盈余或缺口"
         }
         return DietStrategy(tdee: tdee, dailyAdjustment: adjustment,
@@ -55,8 +59,10 @@ enum DietPlanner {
     }
 
     /// 根据目标计算每日热量与三大营养素（单位：克，热量：千卡）
-    static func targets(profile: UserProfile, goal: Goal, weightKG: Double) -> Macros {
-        let kcal = strategy(profile: profile, goal: goal, weightKG: weightKG).targetKcal
+    static func targets(profile: UserProfile, goal: Goal, weightKG: Double,
+                        calibrationKcal: Double = 0) -> Macros {
+        let kcal = strategy(profile: profile, goal: goal, weightKG: weightKG,
+                            calibrationKcal: calibrationKcal).targetKcal
         let protein = (goal.type == .maintain ? 1.6 : 2.0) * weightKG
         let fat = 0.9 * weightKG
         let carbKcal = max(0, kcal - protein * 4 - fat * 9)
@@ -146,6 +152,156 @@ enum DietPlanner {
                                 i, p.name, pAmount, c.name, cAmount, f.name, fAmount))
         }
         return lines
+    }
+}
+
+// MARK: - 体重趋势与热量校准
+
+struct DailyWeight: Hashable, Identifiable {
+    var date: Date
+    var weightKG: Double
+    var id: Date { date }
+}
+
+struct WeightTrendPoint: Hashable, Identifiable {
+    var date: Date
+    var averageKG: Double
+    var pointCount: Int
+    var id: Date { date }
+}
+
+enum DietCalibrationEngine {
+    static func dailyWeights(_ metrics: [BodyMetric], calendar: Calendar = .current) -> [DailyWeight] {
+        var latest: [Date: BodyMetric] = [:]
+        for metric in metrics where metric.weightKG.isFinite && (30...200).contains(metric.weightKG) {
+            let day = calendar.startOfDay(for: metric.date)
+            if latest[day] == nil || metric.date > latest[day]!.date { latest[day] = metric }
+        }
+        return latest.map { DailyWeight(date: $0.key, weightKG: $0.value.weightKG) }
+            .sorted { $0.date < $1.date }
+    }
+
+    static func movingAverages(_ metrics: [BodyMetric], calendar: Calendar = .current) -> [WeightTrendPoint] {
+        let daily = dailyWeights(metrics, calendar: calendar)
+        return daily.compactMap { endpoint in
+            guard let start = calendar.date(byAdding: .day, value: -6, to: endpoint.date) else { return nil }
+            let points = daily.filter { $0.date >= start && $0.date <= endpoint.date }
+            guard points.count >= 4 else { return nil }
+            return WeightTrendPoint(date: endpoint.date,
+                                    averageKG: points.map(\.weightKG).reduce(0, +) / Double(points.count),
+                                    pointCount: points.count)
+        }
+    }
+
+    static func evaluation(metrics: [BodyMetric], goal: Goal, history: [DietEvaluation],
+                           currentAdjustmentKcal: Double, now: Date = Date(),
+                           calendar: Calendar = .current) -> DietEvaluation {
+        let daily = dailyWeights(metrics, calendar: calendar)
+        let end = daily.last?.date ?? calendar.startOfDay(for: now)
+        let latestStart = calendar.date(byAdding: .day, value: -6, to: end)!
+        let earliestEnd = calendar.date(byAdding: .day, value: -1, to: latestStart)!
+        let earliestStart = calendar.date(byAdding: .day, value: -6, to: earliestEnd)!
+        let early = daily.filter { $0.date >= earliestStart && $0.date <= earliestEnd }
+        let late = daily.filter { $0.date >= latestStart && $0.date <= end }
+        let target: Double
+        switch goal.type {
+        case .bulk: target = abs(goal.weeklyTargetDeltaKG)
+        case .cut: target = -abs(goal.weeklyTargetDeltaKG)
+        case .maintain: target = 0
+        }
+        let targetSnapshot = goal.weeklyTargetDeltaKG
+        var result = DietEvaluation(earliestWindowStart: localDate(earliestStart, calendar: calendar),
+                                    earliestWindowEnd: localDate(earliestEnd, calendar: calendar),
+                                    latestWindowStart: localDate(latestStart, calendar: calendar),
+                                    latestWindowEnd: localDate(end, calendar: calendar),
+                                    earliestAverageKG: nil, latestAverageKG: nil,
+                                    earliestPointCount: early.count, latestPointCount: late.count,
+                                    days: nil, goalType: goal.type, targetWeeklyDeltaKG: targetSnapshot,
+                                    actualWeeklyDeltaKG: nil, deviationKGPerWeek: nil,
+                                    suggestedAdjustmentKcal: nil, appliedAdjustmentKcal: nil,
+                                    status: .insufficient, createdAt: now, decidedAt: nil)
+        guard early.count >= 4, late.count >= 4,
+              calendar.dateComponents([.day], from: earliestStart, to: end).day.map({ $0 >= 13 }) == true else {
+            return result
+        }
+        let earlyAverage = early.map(\.weightKG).reduce(0, +) / Double(early.count)
+        let lateAverage = late.map(\.weightKG).reduce(0, +) / Double(late.count)
+        let origin = earliestStart
+        func meanDay(_ points: [DailyWeight]) -> Double {
+            points.map { Double(calendar.dateComponents([.day], from: origin, to: $0.date).day ?? 0) }
+                .reduce(0, +) / Double(points.count)
+        }
+        let days = meanDay(late) - meanDay(early)
+        guard days > 0 else { return result }
+        let actual = (lateAverage - earlyAverage) / days * 7
+        let deviation = actual - target
+        result.earliestAverageKG = earlyAverage
+        result.latestAverageKG = lateAverage
+        result.days = days
+        result.actualWeeklyDeltaKG = actual
+        result.deviationKGPerWeek = deviation
+        guard goal.type != .maintain else { result.status = .withinRange; return result }
+        guard abs(deviation) + 1e-12 >= 0.15 else { result.status = .withinRange; return result }
+        result.status = .deviating
+
+        let compatible = history.filter {
+            guard $0.goalType == goal.type,
+                  abs($0.targetWeeklyDeltaKG - targetSnapshot) < 1e-12,
+                  let previousEnd = date(from: $0.latestWindowEnd, calendar: calendar) else { return false }
+            return calendar.dateComponents([.day], from: previousEnd, to: end).day == 7
+        }.max { lhs, rhs in
+            guard let lhsEnd = date(from: lhs.latestWindowEnd, calendar: calendar),
+                  let rhsEnd = date(from: rhs.latestWindowEnd, calendar: calendar) else { return false }
+            return lhsEnd < rhsEnd
+        }
+        let sameDirection = compatible?.deviationKGPerWeek.map {
+            $0 * deviation > 0 && abs($0) + 1e-12 >= 0.15
+        } ?? false
+        guard sameDirection else { return result }
+        let direction = deviation < 0 ? 1.0 : -1.0
+        let total = DietPlanner.baseAdjustment(goal: goal) + currentAdjustmentKcal
+        let remaining = direction > 0 ? 700 - total : total + 700
+        guard remaining + 1e-12 >= 100 else { return result }
+        let preferred = abs(deviation) + 1e-12 >= 0.30 ? 150.0 : 100.0
+        let amount = preferred == 150 && remaining + 1e-12 < 150 ? 100.0 : preferred
+        result.suggestedAdjustmentKcal = direction * amount
+        result.status = .suggested
+        return result
+    }
+
+    static func formalEvaluation(metrics: [BodyMetric], goal: Goal, history: [DietEvaluation],
+                                 currentAdjustmentKcal: Double, now: Date = Date(),
+                                 calendar: Calendar = .current) -> DietEvaluation? {
+        let result = evaluation(metrics: metrics, goal: goal, history: history,
+                                currentAdjustmentKcal: currentAdjustmentKcal,
+                                now: now, calendar: calendar)
+        guard result.status != .insufficient,
+              !history.contains(where: { matchesWindowSnapshot($0, windowEnd: result.latestWindowEnd, goal: goal) })
+        else { return nil }
+        return result
+    }
+
+    static func matchesWindowSnapshot(_ evaluation: DietEvaluation, windowEnd: String,
+                                      goal: Goal) -> Bool {
+        evaluation.latestWindowEnd == windowEnd && evaluation.goalType == goal.type
+            && abs(evaluation.targetWeeklyDeltaKG - goal.weeklyTargetDeltaKG) < 1e-12
+    }
+
+    private static func date(from localDate: String, calendar: Calendar) -> Date? {
+        let parts = localDate.split(separator: "-")
+        guard parts.count == 3, let year = Int(parts[0]), let month = Int(parts[1]), let day = Int(parts[2]) else {
+            return nil
+        }
+        return calendar.date(from: DateComponents(year: year, month: month, day: day))
+    }
+
+    private static func localDate(_ date: Date, calendar: Calendar) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
     }
 }
 

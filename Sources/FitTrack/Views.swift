@@ -843,10 +843,18 @@ struct DietView: View {
 
     private var weight: Double { store.currentBodyWeightKG }
     private var strategy: DietStrategy {
-        DietPlanner.strategy(profile: store.data.profile, goal: store.data.goal, weightKG: weight)
+        DietPlanner.strategy(profile: store.data.profile, goal: store.data.goal, weightKG: weight,
+                             calibrationKcal: store.data.dietCalibration.currentAdjustmentKcal)
     }
     private var target: Macros {
-        DietPlanner.targets(profile: store.data.profile, goal: store.data.goal, weightKG: weight)
+        DietPlanner.targets(profile: store.data.profile, goal: store.data.goal, weightKG: weight,
+                            calibrationKcal: store.data.dietCalibration.currentAdjustmentKcal)
+    }
+    private var trend: [WeightTrendPoint] {
+        DietCalibrationEngine.movingAverages(store.data.bodyMetrics)
+    }
+    private var latestEvaluation: DietEvaluation? {
+        store.data.dietCalibration.evaluations.max { $0.createdAt < $1.createdAt }
     }
     private var consumed: Macros {
         DietPlanner.summary(on: .now, logs: store.data.dietLogs, foods: store.data.foods)
@@ -878,6 +886,8 @@ struct DietView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(6)
                 }
+
+                calibrationCard
 
                 GroupBox("今日摄入") {
                     VStack(alignment: .leading, spacing: 8) {
@@ -958,6 +968,61 @@ struct DietView: View {
         }
         .onAppear {
             if logFoodName.isEmpty, let f = store.data.foods.first { logFoodName = f.name }
+            store.recordEvaluation()
+        }
+    }
+
+    private var calibrationCard: some View {
+        GroupBox("体重趋势与校准") {
+            VStack(alignment: .leading, spacing: 8) {
+                if trend.isEmpty {
+                    Text("7 日窗口至少需要 4 个有效称重点；请继续记录 30–200 kg 范围内的体重。")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Chart(trend) { point in
+                        LineMark(x: .value("日期", point.date), y: .value("7 日均重", point.averageKG))
+                        PointMark(x: .value("日期", point.date), y: .value("7 日均重", point.averageKG))
+                    }
+                    .frame(height: 150)
+                    Text("最近 7 日趋势：\(String(format: "%.2f", trend.last!.averageKG)) kg · \(trend.last!.pointCount) 个有效日点")
+                        .font(.callout)
+                }
+                Text(String(format: "当前热量校准：%+.0f kcal/天", store.data.dietCalibration.currentAdjustmentKcal))
+                    .font(.headline)
+                if store.data.goal.type == .maintain {
+                    Text("维持目标暂不启用热量校准").foregroundStyle(.secondary)
+                } else if let evaluation = latestEvaluation {
+                    if let actual = evaluation.actualWeeklyDeltaKG {
+                        Text(String(format: "最近评估：实际 %+.2f kg/周 · 目标 %+.2f kg/周 · 前后窗口 %d/%d 点",
+                                    actual, evaluation.targetWeeklyDeltaKG,
+                                    evaluation.earliestPointCount, evaluation.latestPointCount))
+                            .font(.callout)
+                    }
+                    if evaluation.status == .suggested, let adjustment = evaluation.suggestedAdjustmentKcal {
+                        Text(String(format: "连续两次同向偏离，建议 %+.0f kcal/天；调整后目标约 %.0f kcal。",
+                                    adjustment, max(1200, target.kcal + adjustment)))
+                        HStack {
+                            Button("接受") { store.acceptCalibrationSuggestion(id: evaluation.id) }
+                                .buttonStyle(.borderedProminent)
+                            Button("暂不调整") { store.dismissSuggestion(id: evaluation.id) }
+                                .buttonStyle(.bordered)
+                        }
+                    } else if evaluation.status == .withinRange {
+                        Text("趋势在目标允许范围内，暂不建议调整。")
+                            .foregroundStyle(.secondary)
+                    } else if evaluation.status == .deviating {
+                        Text("本次趋势偏离目标；需下一次正式评估仍同向偏离才会建议调整。")
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("需要两个不重叠的 7 日窗口，每窗至少 4 个有效日点。")
+                        .foregroundStyle(.secondary)
+                }
+                Text("趋势仅为估算。短期体重会受水分、糖原、盐摄入、月经周期、消化道内容物和称重条件影响，请勿因一次异常读数调整饮食。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(6)
         }
     }
 

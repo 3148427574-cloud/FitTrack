@@ -17,6 +17,8 @@ import {
   type BigThreeMax,
   type BodyMetric,
   type ChatMessage,
+  type DietCalibration,
+  type DietEvaluation,
   type DietLog,
   type ExerciseDef,
   type ExerciseEntry,
@@ -436,6 +438,7 @@ export interface RestoreCounts {
   foods: number
   exercises: number
   dietLogs: number
+  dietEvaluations: number
   chat: number
 }
 
@@ -477,6 +480,9 @@ const COLLECTION_KEYS: CollectionKey[] = [
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const WORKOUT_STATUSES = new Set(['planned', 'completed', 'skipped'])
 const DIET_SOURCES = new Set(['manual', 'image'])
+const EVALUATION_STATUSES = new Set([
+  'insufficient', 'withinRange', 'deviating', 'suggested', 'accepted', 'dismissed',
+])
 
 function counts(data: AppData | null, chat: ChatMessage[]): RestoreCounts {
   return {
@@ -486,6 +492,7 @@ function counts(data: AppData | null, chat: ChatMessage[]): RestoreCounts {
     foods: data?.foods.length ?? 0,
     exercises: data?.exercises.length ?? 0,
     dietLogs: data?.dietLogs.length ?? 0,
+    dietEvaluations: data?.dietCalibration?.evaluations.length ?? 0,
     chat: chat.length,
   }
 }
@@ -504,6 +511,23 @@ function nonnegativeInteger(v: unknown): v is number {
 
 function validDate(v: unknown): v is Date {
   return v instanceof Date && Number.isFinite(v.getTime())
+}
+
+const LOCAL_DATE_KEY = /^(\d{4})-(\d{2})-(\d{2})$/
+
+function validLocalDateKey(v: unknown): v is string {
+  if (typeof v !== 'string') return false
+  const match = LOCAL_DATE_KEY.exec(v)
+  if (match == null) return false
+  const date = new Date(+match[1], +match[2] - 1, +match[3])
+  return date.getFullYear() === +match[1] && date.getMonth() === +match[2] - 1 && date.getDate() === +match[3]
+}
+
+function toLocalDateKey(v: unknown): string | null {
+  if (validLocalDateKey(v)) return v
+  const date = v instanceof Date ? v : typeof v === 'string' ? parseDate(v) : null
+  if (date == null) return null
+  return `${String(date.getFullYear()).padStart(4, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 function optionalFinite(v: unknown, nonnegative = false): boolean {
@@ -634,6 +658,20 @@ function validBigThree(v: unknown): v is BigThreeMax | null {
   return v == null || (isObject(v) && ['benchKG', 'squatKG', 'deadliftKG'].every((k) => optionalFinite(v[k], true)))
 }
 
+function validDietEvaluation(v: unknown): v is DietEvaluation {
+  return isObject(v) && validUUID(v.id) &&
+    ['previousWindowStart', 'previousWindowEnd', 'currentWindowStart', 'currentWindowEnd']
+      .every((key) => validLocalDateKey(v[key])) &&
+    validDate(v.createdAt) &&
+    (v.decidedAt == null || validDate(v.decidedAt)) &&
+    ['previousAverageKG', 'currentAverageKG', 'days', 'actualWeeklyDelta', 'deviation',
+      'suggestedAdjustmentKcal', 'appliedAdjustmentKcal', 'weeklyTargetDeltaKG']
+      .every((key) => finite(v[key])) &&
+    nonnegativeInteger(v.previousPointCount) && nonnegativeInteger(v.currentPointCount) &&
+    (v.goalType === 'bulk' || v.goalType === 'cut' || v.goalType === 'maintain') &&
+    typeof v.status === 'string' && EVALUATION_STATUSES.has(v.status)
+}
+
 function validChat(v: unknown): v is ChatMessage {
   return (
     isObject(v) &&
@@ -657,7 +695,7 @@ const validators: Record<CollectionKey, (v: unknown) => boolean> = {
 
 function validatedArray<T>(
   raw: unknown,
-  key: CollectionKey | 'chat',
+  key: CollectionKey | 'chat' | 'dietEvaluations',
   validate: (v: unknown) => boolean,
   issues: RestoreIssue[],
 ): T[] | null {
@@ -674,6 +712,22 @@ function validatedArray<T>(
       if (key === 'workouts' && !Object.hasOwn(item, 'notes')) candidate.notes = ''
       if (key === 'plannedWorkouts' && !Object.hasOwn(item, 'status')) candidate.status = 'planned'
       if (key === 'exercises' && !Object.hasOwn(item, 'isBodyweight')) candidate.isBodyweight = false
+      if (key === 'dietEvaluations') {
+        candidate.previousWindowStart = toLocalDateKey(item.previousWindowStart ?? item.earliestWindowStart)
+        candidate.previousWindowEnd = toLocalDateKey(item.previousWindowEnd ?? item.earliestWindowEnd)
+        candidate.currentWindowStart = toLocalDateKey(item.currentWindowStart ?? item.latestWindowStart)
+        candidate.currentWindowEnd = toLocalDateKey(item.currentWindowEnd ?? item.latestWindowEnd)
+        candidate.weeklyTargetDeltaKG = item.weeklyTargetDeltaKG ?? item.targetWeeklyDeltaKG
+        candidate.actualWeeklyDelta = item.actualWeeklyDelta ?? item.actualWeeklyDeltaKG
+        candidate.deviation = item.deviation ?? item.deviationKGPerWeek
+        delete candidate.earliestWindowStart
+        delete candidate.earliestWindowEnd
+        delete candidate.latestWindowStart
+        delete candidate.latestWindowEnd
+        delete candidate.targetWeeklyDeltaKG
+        delete candidate.actualWeeklyDeltaKG
+        delete candidate.deviationKGPerWeek
+      }
     }
     if (!validate(candidate)) {
       issues.push({ path: `${key}[${index}]`, message: '字段、UUID、日期、枚举或数值无效，已跳过' })
@@ -740,9 +794,30 @@ export function previewFullBackup(text: string): RestorePreview | null {
     const value = validatedArray(raw[key], key, validators[key], issues)
     if (value != null) collections[key] = value
   }
+  let dietCalibration: DietCalibration = { currentAdjustmentKcal: 0, evaluations: [] }
+  if (raw.dietCalibration != null) {
+    if (!isObject(raw.dietCalibration) || !finite(raw.dietCalibration.currentAdjustmentKcal)) {
+      issues.push({ path: 'dietCalibration', message: '校准配置无效' })
+    } else if (Math.abs(raw.dietCalibration.currentAdjustmentKcal) > 700) {
+      issues.push({ path: 'dietCalibration', message: 'currentAdjustmentKcal 超出 [-700, 700]' })
+    } else {
+      const evaluations = validatedArray<DietEvaluation>(
+        raw.dietCalibration.evaluations,
+        'dietEvaluations',
+        validDietEvaluation,
+        issues,
+      )
+      if (evaluations != null) {
+        dietCalibration = {
+          currentAdjustmentKcal: raw.dietCalibration.currentAdjustmentKcal,
+          evaluations,
+        }
+      }
+    }
+  }
   const chat = raw.chat == null ? [] : (validatedArray<ChatMessage>(raw.chat, 'chat', validChat, issues) ?? [])
   const critical = issues.some((issue) =>
-    ['schemaVersion', 'profile', 'goal', 'bigThree', 'coachNotes', 'createdAt', 'updatedAt', 'chat'].includes(issue.path) ||
+    ['schemaVersion', 'profile', 'goal', 'bigThree', 'coachNotes', 'createdAt', 'updatedAt', 'chat', 'dietCalibration'].includes(issue.path) ||
     (COLLECTION_KEYS as string[]).includes(issue.path),
   )
   const skipped = issues.filter((issue) => /\[\d+\]/.test(issue.path)).length
@@ -760,6 +835,7 @@ export function previewFullBackup(text: string): RestorePreview | null {
         foods: collections.foods as Food[],
         exercises: collections.exercises as ExerciseDef[],
         dietLogs: collections.dietLogs as DietLog[],
+        dietCalibration,
         bigThree: (raw.bigThree ?? null) as BigThreeMax | null,
         coachNotes: (raw.coachNotes ?? null) as string[] | null,
       } satisfies AppData)
@@ -787,8 +863,17 @@ function mergeByID<T extends { id: string }>(
   strategy: ConflictStrategy,
   stats: RestoreStats,
 ): T[] {
-  const out = [...local]
-  const indexes = new Map(out.map((item, index) => [item.id.toLowerCase(), index]))
+  const out: T[] = []
+  const indexes = new Map<string, number>()
+  for (const item of local) {
+    const id = item.id.toLowerCase()
+    if (indexes.has(id)) {
+      stats.ignored++
+      continue
+    }
+    indexes.set(id, out.length)
+    out.push(item)
+  }
   for (const item of backup) {
     const id = item.id.toLowerCase()
     const index = indexes.get(id)
@@ -854,6 +939,18 @@ export function planFullRestore(
   merged.goal = mergeSingle(localData.goal, preview.data.goal, preview.presentFields.has('goal'), strategy, stats)
   merged.bigThree = mergeSingle(localData.bigThree, preview.data.bigThree, preview.presentFields.has('bigThree'), strategy, stats)
   merged.coachNotes = mergeSingle(localData.coachNotes, preview.data.coachNotes, preview.presentFields.has('coachNotes'), strategy, stats)
+  const localCalibration = localData.dietCalibration ?? { currentAdjustmentKcal: 0, evaluations: [] }
+  const backupCalibration = preview.data.dietCalibration ?? { currentAdjustmentKcal: 0, evaluations: [] }
+  merged.dietCalibration = {
+    currentAdjustmentKcal: mergeSingle(
+      localCalibration.currentAdjustmentKcal,
+      backupCalibration.currentAdjustmentKcal,
+      preview.presentFields.has('dietCalibration'),
+      strategy,
+      stats,
+    ),
+    evaluations: mergeByID(localCalibration.evaluations, backupCalibration.evaluations, strategy, stats),
+  }
   merged.createdAt = localData.createdAt ?? preview.data.createdAt
   merged.updatedAt = preview.data.updatedAt ?? localData.updatedAt
   const chat = mergeByID(localChat, preview.chat, strategy, stats)

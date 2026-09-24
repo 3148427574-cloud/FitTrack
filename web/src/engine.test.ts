@@ -11,16 +11,21 @@ import { ICSExporter, WorkoutText } from './ics'
 import {
   DietPlanner,
   StrengthModel,
+  TDEE,
   TrainingPlanner,
   baseTotal,
   bigThreeValue,
   calories,
+  createDietEvaluation,
   dailyCalorieAdjustment,
   defaultWeight,
   dietSuggestions,
   heightFactor,
   isBodyweight,
+  latestValidWeightPerLocalDay,
+  localCalendarDaysBetween,
   nutritionForDietLog,
+  sevenDayWeightTrend,
   summarizeDietLogsOnDate,
   totalCalories,
   type BigThreeLift,
@@ -445,6 +450,94 @@ describe('TrainingPlanner 指定部位生成', () => {
       '哑铃弯举',
       '绳索下压',
     ])
+  })
+})
+
+describe('体重趋势与热量校准', () => {
+  const goal: Goal = { type: 'bulk', targetWeightKG: 75, weeklyTargetDeltaKG: 0.25 }
+  const metric = (day: number, weightKG: number, hour = 8) => ({
+    id: `metric-${day}-${hour}`,
+    date: new Date(2026, 0, day, hour),
+    weightKG,
+  })
+  const fortnight = (delta: number) => Array.from({ length: 14 }, (_, index) =>
+    metric(index + 1, 70 + delta * index / 7),
+  )
+
+  it('同日多条只取最后有效值，7 日窗口至少 4 点', () => {
+    expect(latestValidWeightPerLocalDay([
+      metric(1, 70, 7), metric(1, 71, 20), metric(2, 20), metric(2, 72),
+    ]).map((point) => point.weightKG)).toEqual([71, 72])
+    expect(sevenDayWeightTrend([metric(1, 70), metric(3, 70), metric(5, 70)])).toEqual([])
+    expect(sevenDayWeightTrend([metric(1, 70), metric(3, 70), metric(5, 70), metric(7, 70)])).toHaveLength(1)
+  })
+
+  it('本地自然日差跨夏令时仍按日历日计算', () => {
+    const before = new Date(2026, 2, 7, 12)
+    const after = new Date(2026, 2, 14, 12)
+    expect(localCalendarDaysBetween(before, after)).toBe(7)
+  })
+
+  it('刚好 14 日、每窗 4 点可评估，窗口保存为本地自然日字符串，3 点不足', () => {
+    const enough = [1, 3, 5, 7, 8, 10, 12, 14].map((day) => metric(day, 70))
+    const evaluation = createDietEvaluation({ metrics: enough, goal, history: [], currentAdjustmentKcal: 0, id: 'a', createdAt: new Date(2026, 0, 14) })!
+    expect(evaluation.status).not.toBe('insufficient')
+    expect(evaluation).toMatchObject({
+      previousWindowStart: '2026-01-01', previousWindowEnd: '2026-01-07',
+      currentWindowStart: '2026-01-08', currentWindowEnd: '2026-01-14',
+    })
+    const sparse = [1, 4, 7, 8, 11, 14].map((day) => metric(day, 70))
+    expect(createDietEvaluation({ metrics: sparse, goal, history: [], currentAdjustmentKcal: 0, id: 'b', createdAt: new Date(2026, 0, 14) })?.status).toBe('insufficient')
+  })
+
+  it('0.15 阈值使用 epsilon=1e-12，bulk/cut 使用带方向目标', () => {
+    const evaluate = (type: Goal['type'], target: number) => createDietEvaluation({
+      metrics: fortnight(0),
+      goal: { ...goal, type, weeklyTargetDeltaKG: target },
+      history: [], currentAdjustmentKcal: 0, id: `${type}-${target}`, createdAt: new Date(2026, 0, 14),
+    })!
+    expect(evaluate('bulk', 0.15).status).toBe('deviating')
+    expect(evaluate('bulk', 0.15 - 1e-12).status).toBe('deviating')
+    expect(evaluate('bulk', 0.15 - 2e-12).status).toBe('withinRange')
+    expect(evaluate('cut', 0.15).status).toBe('deviating')
+    expect(evaluate('maintain', 1).suggestedAdjustmentKcal).toBe(0)
+  })
+
+  it('连续性只看窗口结束日恰好相隔 7 个本地自然日，并按相同窗口和目标快照去重', () => {
+    const first = createDietEvaluation({ metrics: fortnight(0), goal, history: [], currentAdjustmentKcal: 0, id: 'first', createdAt: new Date(2026, 1, 20) })!
+    const shifted = (days: number, delta = 0) => fortnight(delta).map((item) => ({
+      ...item,
+      date: new Date(item.date.getFullYear(), item.date.getMonth(), item.date.getDate() + days),
+    }))
+    const second = createDietEvaluation({ metrics: shifted(7), goal, history: [first], currentAdjustmentKcal: 0, id: 'second', createdAt: new Date(2026, 0, 15) })!
+    expect(second.status).toBe('suggested')
+    expect(second.suggestedAdjustmentKcal).toBe(100)
+    expect(createDietEvaluation({ metrics: shifted(7), goal, history: [first], currentAdjustmentKcal: 0, id: 'duplicate', createdAt: new Date(2026, 2, 1) })?.currentWindowEnd).toBe('2026-01-21')
+    expect(createDietEvaluation({ metrics: shifted(7), goal, history: [first, second], currentAdjustmentKcal: 0, id: 'duplicate', createdAt: new Date(2026, 2, 1) })).toBeNull()
+    expect(createDietEvaluation({ metrics: shifted(8), goal, history: [first], currentAdjustmentKcal: 0, id: 'gap', createdAt: new Date(2026, 0, 22) })?.status).toBe('deviating')
+    expect(createDietEvaluation({ metrics: shifted(7), goal: { ...goal, weeklyTargetDeltaKG: 0.3 }, history: [first], currentAdjustmentKcal: 0, id: 'changed', createdAt: new Date(2026, 0, 21) })?.status).toBe('deviating')
+    expect(createDietEvaluation({ metrics: shifted(7, 0.6), goal, history: [first], currentAdjustmentKcal: 0, id: 'reverse', createdAt: new Date(2026, 0, 21) })?.status).toBe('deviating')
+  })
+
+  it('0.30 建议档位使用 epsilon=1e-12', () => {
+    const suggestion = (target: number) => {
+      const thresholdGoal = { ...goal, weeklyTargetDeltaKG: target }
+      const first = createDietEvaluation({ metrics: fortnight(0), goal: thresholdGoal, history: [], currentAdjustmentKcal: 0, id: `first-${target}` })!
+      const later = fortnight(0).map((item) => ({ ...item, date: new Date(2026, 0, item.date.getDate() + 7, 8) }))
+      return createDietEvaluation({ metrics: later, goal: thresholdGoal, history: [first], currentAdjustmentKcal: 0, id: `second-${target}` })!
+    }
+    expect(suggestion(0.30).suggestedAdjustmentKcal).toBe(150)
+    expect(suggestion(0.30 - 1e-12).suggestedAdjustmentKcal).toBe(150)
+    expect(suggestion(0.30 - 2e-12).suggestedAdjustmentKcal).toBe(100)
+  })
+
+  it('建议余量按基础调整加当前校准后的总调整限制，余量不足 100 不建议', () => {
+    const first = createDietEvaluation({ metrics: fortnight(0), goal, history: [], currentAdjustmentKcal: 0, id: 'first' })!
+    const later = fortnight(0).map((item) => ({ ...item, date: new Date(2026, 0, item.date.getDate() + 7, 8) }))
+    expect(createDietEvaluation({ metrics: later, goal, history: [first], currentAdjustmentKcal: 325, id: 'exact' })?.suggestedAdjustmentKcal).toBe(100)
+    expect(createDietEvaluation({ metrics: later, goal, history: [first], currentAdjustmentKcal: 326, id: 'short' })?.suggestedAdjustmentKcal).toBe(0)
+    expect(DietPlanner.targets(profile, goal, 75, 1000).kcal).toBeCloseTo(TDEE.tdee(profile, 75) + 700)
+    expect(DietPlanner.targets({ ...profile, activityLevel: 1.2 }, { ...goal, type: 'cut' }, 30, -700).kcal).toBe(1200)
   })
 })
 

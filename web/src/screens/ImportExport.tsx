@@ -27,6 +27,7 @@ const COUNT_LABELS: Record<keyof RestorePreview['counts'], string> = {
   foods: '食物',
   exercises: '动作',
   dietLogs: '饮食日志',
+  dietEvaluations: '校准评估',
   chat: '聊天',
 }
 

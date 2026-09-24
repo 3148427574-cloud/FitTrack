@@ -91,6 +91,18 @@ describe('decodeJSON', () => {
     expect(parsed.decidedAt).toBeInstanceOf(Date)
   })
 
+  it('DietEvaluation 窗口字段往返后仍为本地自然日字符串', () => {
+    const windows = {
+      previousWindowStart: '2026-01-01',
+      previousWindowEnd: '2026-01-07',
+      currentWindowStart: '2026-01-08',
+      currentWindowEnd: '2026-01-14',
+    }
+    const parsed = decodeJSON<typeof windows>(encodeJSON(windows))
+    expect(parsed).toEqual(windows)
+    for (const value of Object.values(parsed)) expect(value).not.toBeInstanceOf(Date)
+  })
+
   it('不是日期的字符串留在字符串里', () => {
     expect(decodeJSON<any>('{"date":"not-a-date"}').date).toBe('not-a-date')
   })
